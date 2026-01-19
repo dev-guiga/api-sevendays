@@ -3,10 +3,12 @@ class User < ApplicationRecord
   has_secure_password
   has_many :sessions, dependent: :destroy
 
-  normalizes :email_address, uniqueness: true, presence: true, format: { with: URI::MailTo::EMAIL_REGEXP }
-  validates :first_name, :last_name, :address, :city, :state, :neighborhood, :birth_date, presence: true
-  validates :cpf, cpf: { message: "CPF inválido" }, uniqueness: true, presence: true
-  enum :status, { owner: 0, user: 1, public: 2 }, default: :public
+  normalizes :email_address, with: ->(value) { value.downcase.strip }
+  validates :email_address, uniqueness: true, presence: true, format: { with: URI::MailTo::EMAIL_REGEXP }
+  validates :first_name, :email_address, :last_name, :address, :city, :state, :neighborhood, :birth_date, presence: true
+  validates :username, uniqueness: true, presence: true, length: { minimum: 3, maximum: 20 }
+  validates :cpf, uniqueness: true, presence: true
+  enum :status, { owner: 0, user: 1, standard: 2 }, default: 1
 
   def full_name
     "#{first_name} #{last_name}"
