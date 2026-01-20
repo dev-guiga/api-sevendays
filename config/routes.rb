@@ -5,6 +5,7 @@ Rails.application.routes.draw do
   post "sign_in", to: "sessions#create", as: "sign_in"
   delete "sign_out", to: "sessions#destroy", as: "sign_out"
 
-  post "forgot_password", to: "devise/passwords#create"
-  put "reset_password", to: "devise/passwords#update"
+  devise_for :users, controllers: {
+            passwords: "passwords"
+          }
 end

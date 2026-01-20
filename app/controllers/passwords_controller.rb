@@ -1,4 +1,4 @@
-class Devise::PasswordsController < ::Devise::PasswordsController
+class PasswordsController < ::Devise::PasswordsController
   respond_to :json
   # POST /resource/password
   def create
