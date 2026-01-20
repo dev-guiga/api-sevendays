@@ -69,6 +69,13 @@ RSpec.configure do |config|
   # config.infer_spec_type_from_file_location!
 
   # Filter lines from Rails gems in backtraces.
+
+  config.include Devise::Test::ControllerHelpers, type: :controller
+  # For request/integration specs (Rails 5+ recommended approach for many scenarios)
+  config.include Devise::Test::IntegrationHelpers, type: :request
+  # For system specs (full browser testing)
+  config.include Devise::Test::IntegrationHelpers, type: :system
+
   config.filter_rails_from_backtrace!
   # arbitrary gems may also be filtered via:
   # config.filter_gems_from_backtrace("gem name")

@@ -9,16 +9,6 @@ class UsersController < ApplicationController
     end
   end
 
-  def reset_password
-    @user = User.find_by(username: params[:username])
-    if @user.present?
-      @user.send_reset_password_instructions
-      head :ok
-    else
-      render json: { error: "User not found" }, status: :not_found
-    end
-  end
-
   private
   def user_params
     params.require(:user).permit(:first_name, :last_name, :username, :email_address, :password, :password_confirmation, :cpf, :address, :city, :state, :neighborhood, :birth_date, :status)
