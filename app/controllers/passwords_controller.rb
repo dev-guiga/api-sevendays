@@ -28,8 +28,7 @@ class PasswordsController < ::Devise::PasswordsController
 
   protected
 
-  # Check if proper Lockable module methods are present & unlock strategy
-  # allows to unlock resource on password reset
+
   def unlockable?(resource)
     resource.respond_to?(:unlock_access!) &&
       resource.respond_to?(:unlock_strategy_enabled?) &&
