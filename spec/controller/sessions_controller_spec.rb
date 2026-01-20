@@ -6,6 +6,9 @@ RSpec.describe SessionsController, type: :controller do
     it "routes POST /sign_in to sessions#create" do
       expect(post: "/sign_in").to route_to("sessions#create")
     end
+    it "routes DELETE /sign_out to sessions#destroy" do
+      expect(delete: "/sign_out").to route_to("sessions#destroy")
+    end
   end
   describe "post #create" do
     context "with valid parameters" do
@@ -24,6 +27,7 @@ RSpec.describe SessionsController, type: :controller do
         expect(json["success"]).to be true
         expect(json["user"]["email"]).to eq(user.email_address)
         expect(json["user"]["name"]).to eq(user.full_name)
+        expect(session[:user_id]).to eq(user.id)
       end
     end
 
@@ -39,6 +43,7 @@ RSpec.describe SessionsController, type: :controller do
         json = JSON.parse(response.body)
         expect(json["error"]).to eq("Invalid email or password")
         expect(response.status).to eq(401)
+        expect(session[:user_id]).to be_nil
       end
     end
 
@@ -55,7 +60,18 @@ RSpec.describe SessionsController, type: :controller do
         json = JSON.parse(response.body)
         expect(json["error"]).to eq("Invalid email or password")
         expect(response.status).to eq(401)
+        expect(session[:user_id]).to be_nil
       end
+    end
+  end
+
+  describe "delete #destroy" do
+    let(:user) { create(:user, email_address: "test@example.com", password: "password123") }
+    it "returns no content" do
+      session[:user_id] = user.id
+      delete :destroy, format: :json
+      expect(response.status).to eq(204)
+      expect(session[:user_id]).to be_nil
     end
   end
 end
