@@ -19,11 +19,7 @@ class PasswordsController < ::Devise::PasswordsController
 
     if resource.errors.empty?
       resource.unlock_access! if unlockable?(resource)
-      if resource_class.sign_in_after_reset_password
-        render json: { message: "Password reset successfully" }, status: :ok
-      else
-        render json: { error: "Password reset failed" }, status: :unprocessable_entity
-      end
+      render json: { message: "Password reset successfully" }, status: :ok
     else
       set_minimum_password_length
       render json: { error: resource.errors.full_messages }, status: :unprocessable_entity
