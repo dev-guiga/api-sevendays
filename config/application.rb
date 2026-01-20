@@ -10,6 +10,7 @@ module ApiSevendays
     config.api_only = true
     config.session_store :cookie_store, key: "_api_sevendays_session"
     config.middleware.use ActionDispatch::Cookies
+    config.middleware.insert_before Warden::Manager, ActionDispatch::Session::CookieStore
     config.middleware.use config.session_store, config.session_options
   end
 end

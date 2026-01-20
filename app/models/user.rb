@@ -1,7 +1,7 @@
 class User < ApplicationRecord
   before_validation { self.cpf = CPF.new(cpf).stripped if cpf.present? }
-  has_secure_password
   has_many :sessions, dependent: :destroy
+  devise :rememberable, :recoverable, :database_authenticatable
 
   normalizes :email_address, with: ->(value) { value.downcase.strip }
   validates :email_address, uniqueness: true, presence: true, format: { with: URI::MailTo::EMAIL_REGEXP }
