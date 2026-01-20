@@ -7,8 +7,6 @@ RSpec.describe UsersController, type: :controller do
       expect(post: "/sign_up").to route_to("users#create")
     end
   end
-
-  # Controller specs
   describe "POST #create" do
     context "with valid parameters" do
       let(:valid_attributes) { attributes_for(:user, :owner) }
