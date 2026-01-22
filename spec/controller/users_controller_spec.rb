@@ -39,7 +39,7 @@ RSpec.describe UsersController, type: :controller do
           first_name: "",
           username: "",
           last_name: "",
-          email_address: ""
+          email: ""
 
         }
       }
@@ -61,7 +61,7 @@ RSpec.describe UsersController, type: :controller do
 
         expect(json).to have_key("first_name")
         expect(json).to have_key("username")
-        expect(json).to have_key("email_address")
+        expect(json).to have_key("email")
       end
     end
 
@@ -90,9 +90,9 @@ RSpec.describe UsersController, type: :controller do
     end
 
     context "when email already exists" do
-      let!(:existing_user) { create(:user, email_address: "duplicate@example.com") }
+      let!(:existing_user) { create(:user, email: "duplicate@example.com") }
       let(:duplicate_attributes) {
-        attributes_for(:user, :owner, email_address: "duplicate@example.com")
+        attributes_for(:user, :owner, email: "duplicate@example.com")
       }
 
       it "does not create a new User" do
@@ -104,7 +104,7 @@ RSpec.describe UsersController, type: :controller do
       it "returns validation errors for email" do
         post :create, params: { user: duplicate_attributes }, format: :json
         json = JSON.parse(response.body)
-        expect(json["email_address"]).to include("has already been taken")
+        expect(json["email"]).to include("has already been taken")
       end
     end
 

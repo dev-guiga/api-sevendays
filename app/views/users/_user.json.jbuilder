@@ -4,7 +4,7 @@ json.user do
   json.last_name user.last_name
   json.full_name user.full_name
   json.username user.username
-  json.email_address user.email_address
+  json.email user.email
   json.status user.status
   json.created_at user.created_at
   json.updated_at user.updated_at

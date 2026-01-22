@@ -12,12 +12,12 @@ RSpec.describe SessionsController, type: :controller do
   end
   describe "post #create" do
     context "with valid parameters" do
-      let(:user) { create(:user, email_address: "test@example.com", password: "password123") }
+      let(:user) { create(:user, email: "test@example.com", password: "password123") }
 
       it "returns created status and user data" do
         post :create, params: {
           session: {
-            email_address: user.email_address,
+            email: user.email,
             password: "password123"
           }
         }, format: :json
@@ -25,7 +25,7 @@ RSpec.describe SessionsController, type: :controller do
         json = JSON.parse(response.body)
         expect(response.status).to eq(201)
         expect(json["success"]).to be true
-        expect(json["user"]["email"]).to eq(user.email_address)
+        expect(json["user"]["email"]).to eq(user.email)
         expect(json["user"]["name"]).to eq(user.full_name)
         expect(session[:user_id]).to eq(user.id)
       end
@@ -35,7 +35,7 @@ RSpec.describe SessionsController, type: :controller do
       it "returns unauthorized" do
         post :create, params: {
           session: {
-            email_address: "naoexiste@test.com",
+            email: "naoexiste@test.com",
             password: "password123"
           }
         }, format: :json
@@ -48,11 +48,11 @@ RSpec.describe SessionsController, type: :controller do
     end
 
     context "with invalid password" do
-      let(:user) { create(:user, email_address: "test@example.com", password: "password123") }
+      let(:user) { create(:user, email: "test@example.com", password: "password123") }
       it "returns unauthorized" do
         post :create, params: {
           session: {
-            email_address: user.email_address,
+            email: user.email,
             password: "senhaerrada"
           }
         }, format: :json
@@ -66,7 +66,7 @@ RSpec.describe SessionsController, type: :controller do
   end
 
   describe "delete #destroy" do
-    let(:user) { create(:user, email_address: "test@example.com", password: "password123") }
+    let(:user) { create(:user, email: "test@example.com", password: "password123") }
     it "returns no content" do
       session[:user_id] = user.id
       delete :destroy, format: :json

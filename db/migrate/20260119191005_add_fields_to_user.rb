@@ -3,7 +3,7 @@ class AddFieldsToUser < ActiveRecord::Migration[8.1]
     add_column :users, :first_name, :string
     add_column :users, :last_name, :string
     add_column :users, :username, :string
-    add_column :users, :email_address, :string
+    add_column :users, :email, :string
     add_column :users, :password, :string
     add_column :users, :cpf, :string
     add_column :users, :address, :string
@@ -14,7 +14,7 @@ class AddFieldsToUser < ActiveRecord::Migration[8.1]
     add_column :users, :status, :integer, default: 1
 
     add_index :users, :cpf, unique: true
-    add_index :users, :email_address, unique: true
+    add_index :users, :email, unique: true
     add_index :users, :username, unique: true
   end
 end
