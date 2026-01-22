@@ -6,6 +6,6 @@ Rails.application.routes.draw do
   delete "sign_out", to: "sessions#destroy", as: "sign_out"
 
   devise_for :users, controllers: {
-            passwords: "devise/passwords"
-          }
+    passwords: "devise/passwords"
+  }
 end
