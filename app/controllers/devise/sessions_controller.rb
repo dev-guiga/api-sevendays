@@ -1,8 +1,8 @@
 module Devise
 class Devise::SessionsController < DeviseController
-  # POST /resource/sign_in
+  before_action :find_user, only: [ :create, :destroy ]
+
   def create
-    @user = User.find_by(email: params_user[:email])
     if @user.present? && @user.valid_password?(params_user[:password])
       sign_in(resource_name, @user)
       render json: { message: "Signed in successfully" }
@@ -11,21 +11,24 @@ class Devise::SessionsController < DeviseController
     end
   end
 
-  # DELETE /resource/sign_out
   def destroy
-    signed_out = (Devise.sign_out_all_scopes ? sign_out : sign_out(resource_name))
-    set_flash_message! :notice, :signed_out if signed_out
-    yield if block_given?
-    render json: { message: "Signed out successfully" }
+    signed_out = (Devise.sign_out_all_scopes ? sign_out : sign_out(resource_name, @user.id))
+    render json: { message: "Signed out successfully" } if signed_out
   end
 
   def auth_options
     { scope: resource_name, recall: "#{controller_path}#create", locale: I18n.locale }
   end
+
   private
   def params_user
     params.require(:user).permit(:email, :password)
   end
+
+  def find_user
+    @user = User.find_by(email: params_user[:email])
+  end
+
   def verify_signed_out_user
     if all_signed_out?
       render json: { message: "Already signed out" }, status: :unauthorized
