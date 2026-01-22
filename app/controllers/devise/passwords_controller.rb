@@ -1,4 +1,5 @@
-class PasswordsController < ::Devise::PasswordsController
+module Devise
+class Devise::PasswordsController < DeviseController
   respond_to :json
   # POST /resource/password
   def create
@@ -38,4 +39,5 @@ class PasswordsController < ::Devise::PasswordsController
   def translation_scope
     "devise.passwords"
   end
+end
 end
