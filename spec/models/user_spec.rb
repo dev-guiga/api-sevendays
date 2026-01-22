@@ -10,7 +10,7 @@ RSpec.describe User, type: :model do
   end
 
   it "is invalid without a email address" do
-    expect(build(:user, email_address: nil)).to be_invalid
+    expect(build(:user, email: nil)).to be_invalid
   end
 
   it "is invalid without a first name" do
