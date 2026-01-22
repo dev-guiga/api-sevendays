@@ -1,76 +1,77 @@
 require "rails_helper"
 
-RSpec.describe Devise::SessionsController, type: :controller do
-  render_views
-
-  before do
-    @request.env["devise.mapping"] = Devise.mappings[:user]
-  end
-
+RSpec.describe SessionsController, type: :controller do
+    render_views
   describe "routes" do
-    it "routes POST /users/sign_in to devise/sessions#create" do
-      expect(post: "/users/sign_in").to route_to("devise/sessions#create")
+    it "routes POST /sign_in to sessions#create" do
+      expect(post: "/sign_in").to route_to("sessions#create")
     end
-
-    it "routes DELETE /users/sign_out to devise/sessions#destroy" do
-      expect(delete: "/users/sign_out").to route_to("devise/sessions#destroy")
+    it "routes DELETE /sign_out to sessions#destroy" do
+      expect(delete: "/sign_out").to route_to("sessions#destroy")
     end
   end
+  describe "post #create" do
+    context "with valid parameters" do
+      let(:user) { create(:user, email_address: "test@example.com", password: "password123") }
 
-  describe "POST #create" do
-    subject(:perform_request) do
-      post :create, params: params, format: :json
-    end
+      it "returns created status and user data" do
+        post :create, params: {
+          session: {
+            email_address: user.email_address,
+            password: "password123"
+          }
+        }, format: :json
 
-    let(:params) { { user: { email: email, password: password } } }
-    let(:email) { user.email }
-    let(:password) { "password123" }
-    let!(:user) { create(:user, email: "test@example.com", password: "password123") }
-
-    context "with valid credentials" do
-      it "returns ok with success message" do
-        perform_request
-
-        expect(response).to have_http_status(:ok)
-        expect(response.parsed_body["message"]).to eq("Signed in successfully")
+        json = JSON.parse(response.body)
+        expect(response.status).to eq(201)
+        expect(json["success"]).to be true
+        expect(json["user"]["email"]).to eq(user.email_address)
+        expect(json["user"]["name"]).to eq(user.full_name)
+        expect(session[:user_id]).to eq(user.id)
       end
     end
 
-    context "with invalid email" do
-      let(:email) { "naoexiste@test.com" }
+     context "with invalid email" do
+      it "returns unauthorized" do
+        post :create, params: {
+          session: {
+            email_address: "naoexiste@test.com",
+            password: "password123"
+          }
+        }, format: :json
 
-      it "returns unauthorized with error message" do
-        perform_request
-
-        expect(response).to have_http_status(:unauthorized)
-        expect(response.parsed_body["message"]).to eq("Invalid email or password")
+        json = JSON.parse(response.body)
+        expect(json["error"]).to eq("Invalid email or password")
+        expect(response.status).to eq(401)
+        expect(session[:user_id]).to be_nil
       end
     end
 
     context "with invalid password" do
-      let(:password) { "senhaerrada" }
+      let(:user) { create(:user, email_address: "test@example.com", password: "password123") }
+      it "returns unauthorized" do
+        post :create, params: {
+          session: {
+            email_address: user.email_address,
+            password: "senhaerrada"
+          }
+        }, format: :json
 
-      it "returns unauthorized with error message" do
-        perform_request
-
-        expect(response).to have_http_status(:unauthorized)
-        expect(response.parsed_body["message"]).to eq("Invalid email or password")
+        json = JSON.parse(response.body)
+        expect(json["error"]).to eq("Invalid email or password")
+        expect(response.status).to eq(401)
+        expect(session[:user_id]).to be_nil
       end
     end
   end
 
-  describe "DELETE #destroy" do
-    subject(:perform_request) do
-      delete :destroy, params: params, format: :json
-    end
-
-    let!(:user) { create(:user, email: "test@example.com", password: "password123") }
-    let(:params) { { user: { email: user.email, password: "password123" } } }
-
+  describe "delete #destroy" do
+    let(:user) { create(:user, email_address: "test@example.com", password: "password123") }
     it "returns no content" do
-      perform_request
-
-      expect(response).to have_http_status(:no_content)
+      session[:user_id] = user.id
+      delete :destroy, format: :json
+      expect(response.status).to eq(204)
+      expect(session[:user_id]).to be_nil
     end
   end
 end
