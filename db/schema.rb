@@ -10,9 +10,46 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_22_195453) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_23_200224) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "diaries", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "description", null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id"], name: "index_diaries_on_user_id", unique: true
+  end
+
+  create_table "scheduling_rules", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "diary_id", null: false
+    t.date "end_date"
+    t.time "end_time", null: false
+    t.date "start_date"
+    t.time "start_time", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.integer "week_days", null: false, array: true
+    t.index ["diary_id", "user_id"], name: "index_scheduling_rules_on_diary_id_and_user_id", unique: true
+    t.index ["diary_id"], name: "index_scheduling_rules_on_diary_id"
+    t.index ["user_id"], name: "index_scheduling_rules_on_user_id"
+  end
+
+  create_table "schedulings", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.date "date", null: false
+    t.text "description", null: false
+    t.bigint "diary_id", null: false
+    t.bigint "scheduling_rule_id", null: false
+    t.string "status", default: "pending", null: false
+    t.time "time", null: false
+    t.datetime "updated_at", null: false
+    t.index ["diary_id"], name: "index_schedulings_on_diary_id"
+    t.index ["scheduling_rule_id"], name: "index_schedulings_on_scheduling_rule_id"
+  end
 
   create_table "users", force: :cascade do |t|
     t.string "address"
@@ -41,4 +78,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_22_195453) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
     t.index ["username"], name: "index_users_on_username", unique: true
   end
+
+  add_foreign_key "diaries", "users"
+  add_foreign_key "scheduling_rules", "diaries"
+  add_foreign_key "scheduling_rules", "users"
+  add_foreign_key "schedulings", "diaries"
+  add_foreign_key "schedulings", "scheduling_rules"
 end
