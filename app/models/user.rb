@@ -3,6 +3,8 @@ class User < ApplicationRecord
   has_many :sessions, dependent: :destroy
   devise :rememberable, :recoverable, :database_authenticatable, :validatable, :trackable, :registerable
 
+  has_one :diary, dependent: :destroy
+
   normalizes :email, with: ->(value) { value.downcase.strip }
   validates :email, uniqueness: true, presence: true, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :first_name, :email, :last_name, :address, :city, :state, :neighborhood, :birth_date, presence: true
