@@ -21,7 +21,7 @@ class UsersController < ApplicationController
       :cpf,
       :birth_date,
       :status,
-      address_attributes: [:address, :city, :state, :neighborhood]
+      address_attributes: [ :address, :city, :state, :neighborhood ]
     )
 
     permitted[:address_attributes] ||= address_params_from_root

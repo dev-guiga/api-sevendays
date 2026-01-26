@@ -10,6 +10,6 @@ class CreateSchedulingRules < ActiveRecord::Migration[8.1]
       t.integer :week_days, null: false, array: true
       t.timestamps
     end
-    add_index :scheduling_rules, [:diary_id, :user_id], unique: true
+    add_index :scheduling_rules, [ :diary_id, :user_id ], unique: true
   end
 end
