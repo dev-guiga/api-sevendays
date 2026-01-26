@@ -1,7 +1,6 @@
 require "rails_helper"
 
 RSpec.describe Devise::PasswordsController, type: :routing do
-  render_views
   it "routes POST /api/users/password to devise/passwords#create" do
     expect(post: "/api/users/password").to route_to("devise/passwords#create")
   end
