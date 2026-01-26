@@ -23,9 +23,9 @@ RSpec.describe Devise::SessionsController, type: :controller do
     end
 
     let(:params) { { user: { email: email, password: password } } }
+    let!(:user) { create_user!(email: Faker::Internet.unique.email) }
     let(:email) { user.email }
     let(:password) { "password123" }
-    let!(:user) { create(:user, email: "test@example.com", password: "password123") }
 
     context "with valid credentials" do
       it "returns ok with success message" do
@@ -64,7 +64,7 @@ RSpec.describe Devise::SessionsController, type: :controller do
       delete :destroy, params: params, format: :json
     end
 
-    let!(:user) { create(:user, email: "test@example.com", password: "password123") }
+    let!(:user) { create_user!(email: Faker::Internet.unique.email) }
     let(:params) { { user: { email: user.email, password: "password123" } } }
 
     it "returns no content" do
