@@ -1,6 +1,6 @@
 class Scheduling < ApplicationRecord
-  belongs_to :diary
-  belongs_to :scheduling_rule
+  belongs_to :diary, inverse_of: :schedulings
+  belongs_to :scheduling_rule, inverse_of: :schedulings
 
   validates :diary_id, presence: true
   validates :scheduling_rule_id, presence: true

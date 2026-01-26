@@ -1,6 +1,7 @@
 class SchedulingRule < ApplicationRecord
-  belongs_to :user
-  belongs_to :diary
+  belongs_to :user, inverse_of: :scheduling_rules
+  belongs_to :diary, inverse_of: :scheduling_rule
+  has_many :schedulings, inverse_of: :scheduling_rule, dependent: :destroy
 
   validates :start_time, :end_time, :week_days, presence: true
   validate :end_date_not_before_start_date
