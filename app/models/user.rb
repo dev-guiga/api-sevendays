@@ -1,6 +1,5 @@
 class User < ApplicationRecord
   before_validation { self.cpf = CPF.new(cpf).stripped if cpf.present? }
-  has_many :sessions, dependent: :destroy
   devise :rememberable, :recoverable, :database_authenticatable, :validatable, :trackable, :registerable
 
   has_one :diary, dependent: :destroy, inverse_of: :user
