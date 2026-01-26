@@ -1,6 +1,10 @@
 require "rails_helper"
 
 RSpec.describe UsersController, type: :controller do
+  let(:params) { user_params }
+
+  render_views
+
   def user_params(overrides = {})
     user_attributes({ status: "owner" }.merge(overrides))
   end
@@ -12,7 +16,7 @@ RSpec.describe UsersController, type: :controller do
   end
 
   describe "POST #create" do
-    let(:params) { user_params }
+
 
     context "when success" do
       it "creates a user and returns 201" do

@@ -1,6 +1,11 @@
 require "rails_helper"
 
 RSpec.describe Devise::SessionsController, type: :controller do
+  let(:params) { { user: { email: email, password: password } } }
+  let!(:user) { create_user!(email: Faker::Internet.unique.email) }
+  let(:email) { user.email }
+  let(:password) { "password123" }
+
   render_views
 
   before do
@@ -22,11 +27,7 @@ RSpec.describe Devise::SessionsController, type: :controller do
       post :create, params: params, format: :json
     end
 
-    let(:params) { { user: { email: email, password: password } } }
-    let!(:user) { create_user!(email: Faker::Internet.unique.email) }
-    let(:email) { user.email }
-    let(:password) { "password123" }
-
+    
     context "with valid credentials" do
       it "returns ok with success message" do
         perform_request
