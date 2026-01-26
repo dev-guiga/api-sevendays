@@ -18,7 +18,7 @@ RSpec.describe SchedulingRule, type: :model do
         diary: diary,
         start_time: "09:00",
         end_time: "10:00",
-        week_days: [1, 3, 5],
+        week_days: [ 1, 3, 5 ],
         start_date: Date.current,
         end_date: Date.current + 7.days
       }.merge(overrides)
