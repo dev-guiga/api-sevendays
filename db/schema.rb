@@ -10,9 +10,20 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_23_200224) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_26_201500) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "addresses", force: :cascade do |t|
+    t.string "address", null: false
+    t.string "city", null: false
+    t.datetime "created_at", null: false
+    t.string "neighborhood", null: false
+    t.string "state", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id"], name: "index_addresses_on_user_id", unique: true
+  end
 
   create_table "diaries", force: :cascade do |t|
     t.datetime "created_at", null: false
@@ -52,9 +63,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_23_200224) do
   end
 
   create_table "users", force: :cascade do |t|
-    t.string "address"
     t.date "birth_date"
-    t.string "city"
     t.string "cpf"
     t.datetime "created_at", null: false
     t.datetime "current_sign_in_at"
@@ -65,12 +74,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_23_200224) do
     t.string "last_name"
     t.datetime "last_sign_in_at"
     t.string "last_sign_in_ip"
-    t.string "neighborhood"
     t.datetime "remember_created_at"
     t.datetime "reset_password_sent_at"
     t.string "reset_password_token"
     t.integer "sign_in_count", default: 0, null: false
-    t.string "state"
     t.integer "status", default: 1
     t.datetime "updated_at", null: false
     t.string "username"
@@ -79,6 +86,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_23_200224) do
     t.index ["username"], name: "index_users_on_username", unique: true
   end
 
+  add_foreign_key "addresses", "users"
   add_foreign_key "diaries", "users"
   add_foreign_key "scheduling_rules", "diaries"
   add_foreign_key "scheduling_rules", "users"

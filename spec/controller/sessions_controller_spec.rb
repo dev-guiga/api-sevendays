@@ -8,12 +8,12 @@ RSpec.describe Devise::SessionsController, type: :controller do
   end
 
   describe "routes" do
-    it "routes POST /users/sign_in to devise/sessions#create" do
-      expect(post: "/users/sign_in").to route_to("devise/sessions#create")
+    it "routes POST /api/users/sign_in to devise/sessions#create" do
+      expect(post: "/api/users/sign_in").to route_to("devise/sessions#create")
     end
 
-    it "routes DELETE /users/sign_out to devise/sessions#destroy" do
-      expect(delete: "/users/sign_out").to route_to("devise/sessions#destroy")
+    it "routes DELETE /api/users/sign_out to devise/sessions#destroy" do
+      expect(delete: "/api/users/sign_out").to route_to("devise/sessions#destroy")
     end
   end
 
