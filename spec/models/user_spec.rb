@@ -21,20 +21,8 @@ RSpec.describe User, type: :model do
     expect(build(:user, last_name: nil)).to be_invalid
   end
 
-  it "is invalid without a address" do
-    expect(build(:user, address: nil)).to be_invalid
-  end
-
-  it "is invalid without a city" do
-    expect(build(:user, city: nil)).to be_invalid
-  end
-
-  it "is invalid without a state" do
-    expect(build(:user, state: nil)).to be_invalid
-  end
-
-  it "is invalid without a neighborhood" do
-    expect(build(:user, neighborhood: nil)).to be_invalid
+  it "is invalid without an address" do
+    expect(build(:user, skip_address: true)).to be_invalid
   end
 
   it "is invalid without a birth date" do
