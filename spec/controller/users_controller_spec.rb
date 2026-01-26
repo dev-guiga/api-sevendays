@@ -3,8 +3,8 @@ require "rails_helper"
 RSpec.describe UsersController, type: :controller do
   # Routing specs
   describe "routing" do
-    it "routes POST /sign_up to users#create" do
-      expect(post: "/sign_up").to route_to("users#create")
+    it "routes POST /api/sign_up to api/users#create" do
+      expect(post: "/api/sign_up").to route_to("users#create")
     end
   end
   describe "POST #create" do

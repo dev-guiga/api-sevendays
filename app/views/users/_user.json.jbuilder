@@ -9,9 +9,16 @@ json.user do
   json.created_at user.created_at
   json.updated_at user.updated_at
   json.cpf user.cpf
-  json.address user.address
-  json.city user.city
-  json.state user.state
-  json.neighborhood user.neighborhood
   json.birth_date user.birth_date
+  if user.address.present?
+    json.address do
+      json.id user.address.id
+      json.address user.address.address
+      json.city user.address.city
+      json.state user.address.state
+      json.neighborhood user.address.neighborhood
+      json.created_at user.address.created_at
+      json.updated_at user.address.updated_at
+    end
+  end
 end
