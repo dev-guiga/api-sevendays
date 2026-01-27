@@ -16,8 +16,6 @@ RSpec.describe UsersController, type: :controller do
   end
 
   describe "POST #create" do
-
-
     context "when success" do
       it "creates a user and returns 201" do
         expect {

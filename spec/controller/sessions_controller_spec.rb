@@ -27,7 +27,7 @@ RSpec.describe Devise::SessionsController, type: :controller do
       post :create, params: params, format: :json
     end
 
-    
+
     context "with valid credentials" do
       it "returns ok with success message" do
         perform_request
