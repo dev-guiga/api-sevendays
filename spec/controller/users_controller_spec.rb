@@ -33,6 +33,39 @@ RSpec.describe UsersController, type: :controller do
       end
     end
 
+    context "when status is not provided" do
+      let(:valid_attributes) { attributes_for(:user).except(:status) }
+
+      it "defaults to user" do
+        post :create, params: { user: valid_attributes }, format: :json
+        user = User.last
+
+        expect(user.status).to eq("user")
+      end
+    end
+
+    context "when status is provided as user" do
+      let(:valid_attributes) { attributes_for(:user, status: "user") }
+
+      it "keeps user status" do
+        post :create, params: { user: valid_attributes }, format: :json
+        user = User.last
+
+        expect(user.status).to eq("user")
+      end
+    end
+
+    context "when status is provided as standard" do
+      let(:valid_attributes) { attributes_for(:user, status: "standard") }
+
+      it "forces status to user" do
+        post :create, params: { user: valid_attributes }, format: :json
+        user = User.last
+
+        expect(user.status).to eq("user")
+      end
+    end
+
     context "with invalid parameters" do
       let(:invalid_attributes) {
         {
