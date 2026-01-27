@@ -29,9 +29,8 @@ RSpec.describe UsersController, type: :controller do
       end
     end
 
-<<<<<<< HEAD
     context "when status is not provided" do
-      let(:valid_attributes) { attributes_for(:user).except(:status) }
+      let(:valid_attributes) { user_attributes.except(:status) }
 
       it "defaults to user" do
         post :create, params: { user: valid_attributes }, format: :json
@@ -42,7 +41,7 @@ RSpec.describe UsersController, type: :controller do
     end
 
     context "when status is provided as user" do
-      let(:valid_attributes) { attributes_for(:user, status: "user") }
+      let(:valid_attributes) { user_attributes(status: "user") }
 
       it "keeps user status" do
         post :create, params: { user: valid_attributes }, format: :json
@@ -53,7 +52,7 @@ RSpec.describe UsersController, type: :controller do
     end
 
     context "when status is provided as standard" do
-      let(:valid_attributes) { attributes_for(:user, status: "standard") }
+      let(:valid_attributes) { user_attributes(status: "standard") }
 
       it "forces status to user" do
         post :create, params: { user: valid_attributes }, format: :json
@@ -69,14 +68,11 @@ RSpec.describe UsersController, type: :controller do
           first_name: "",
           username: "",
           last_name: "",
-          email_address: ""
-=======
-    context "when params are invalid" do
-      let(:invalid_params) { user_params(first_name: "", email: "", username: "") }
->>>>>>> 8e540bc1f3fbbb4439cb5030247471c24863bfd7
-
+          email: ""
+        }
+      }
       before do
-        post :create, params: { user: invalid_params }, format: :json
+        post :create, params: { user: invalid_attributes }, format: :json
       end
 
       it "does not create a user" do
