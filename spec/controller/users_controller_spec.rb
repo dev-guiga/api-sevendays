@@ -1,38 +1,35 @@
 require "rails_helper"
 
 RSpec.describe UsersController, type: :controller do
-  # Routing specs
+  let(:params) { user_params }
+
+  render_views
+
+  def user_params(overrides = {})
+    user_attributes({ status: "owner" }.merge(overrides))
+  end
+
   describe "routing" do
-    it "routes POST /sign_up to users#create" do
-      expect(post: "/sign_up").to route_to("users#create")
+    it "routes POST /api/sign_up to users#create" do
+      expect(post: "/api/sign_up").to route_to("users#create")
     end
   end
+
   describe "POST #create" do
-    context "with valid parameters" do
-      let(:valid_attributes) { attributes_for(:user, :owner) }
-
-      it "creates a new User" do
+    context "when success" do
+      it "creates a user and returns 201" do
         expect {
-          post :create, params: { user: valid_attributes }, format: :json
+          post :create, params: { user: params }, format: :json
         }.to change(User, :count).by(1)
-      end
 
-      it "returns created status" do
-        post :create, params: { user: valid_attributes }, format: :json
         expect(response).to have_http_status(:created)
-      end
-
-      it "creates user with correct attributes in database" do
-        post :create, params: { user: valid_attributes }, format: :json
-        user = User.last
-
-        expect(user.first_name).to eq(valid_attributes[:first_name])
-        expect(user.username).to eq(valid_attributes[:username])
-        expect(user.status).to eq("owner")
-        expect(user).to be_persisted
+        created = User.last
+        expect(created.username).to eq(params[:username])
+        expect(created.address.address).to eq(params[:address_attributes][:address])
       end
     end
 
+<<<<<<< HEAD
     context "when status is not provided" do
       let(:valid_attributes) { attributes_for(:user).except(:status) }
 
@@ -73,90 +70,61 @@ RSpec.describe UsersController, type: :controller do
           username: "",
           last_name: "",
           email_address: ""
+=======
+    context "when params are invalid" do
+      let(:invalid_params) { user_params(first_name: "", email: "", username: "") }
+>>>>>>> 8e540bc1f3fbbb4439cb5030247471c24863bfd7
 
-        }
-      }
-
-      it "does not create a new User" do
-        expect {
-          post :create, params: { user: invalid_attributes }, format: :json
-        }.not_to change(User, :count)
+      before do
+        post :create, params: { user: invalid_params }, format: :json
       end
 
-      it "returns unprocessable entity status" do
-        post :create, params: { user: invalid_attributes }, format: :json
+      it "does not create a user" do
+        expect(User.count).to eq(0)
+      end
+
+      it "returns 422 with validation errors" do
         expect(response).to have_http_status(:unprocessable_entity)
-      end
-
-      it "returns validation errors as JSON" do
-        post :create, params: { user: invalid_attributes }, format: :json
-        json = JSON.parse(response.body)
-
-        expect(json).to have_key("first_name")
-        expect(json).to have_key("username")
-        expect(json).to have_key("email_address")
+        body = response.parsed_body
+        expect(body).to include("first_name", "email", "username")
       end
     end
 
     context "when username already exists" do
-      let!(:existing_user) { create(:user, username: "duplicate_user") }
-      let(:duplicate_attributes) {
-        attributes_for(:user, :owner, username: "duplicate_user")
-      }
+      before { create_user!(user_params(username: "duplicate", email: Faker::Internet.unique.email, cpf: Faker::Number.unique.number(digits: 11).to_s)) }
 
-      it "does not create a new User" do
+      it "returns 422 and does not create user" do
         expect {
-          post :create, params: { user: duplicate_attributes }, format: :json
+          post :create, params: { user: user_params(username: "duplicate") }, format: :json
         }.not_to change(User, :count)
-      end
-
-      it "returns unprocessable entity status" do
-        post :create, params: { user: duplicate_attributes }, format: :json
         expect(response).to have_http_status(:unprocessable_entity)
-      end
-
-      it "returns validation errors" do
-        post :create, params: { user: duplicate_attributes }, format: :json
-        json = JSON.parse(response.body)
-        expect(json["username"]).to include("has already been taken")
+        expect(response.parsed_body["username"]).to include("has already been taken")
       end
     end
 
     context "when email already exists" do
-      let!(:existing_user) { create(:user, email_address: "duplicate@example.com") }
-      let(:duplicate_attributes) {
-        attributes_for(:user, :owner, email_address: "duplicate@example.com")
-      }
+      let(:email) { Faker::Internet.unique.email }
+      before { create_user!(user_params(email: email, username: Faker::Internet.unique.username, cpf: Faker::Number.unique.number(digits: 11).to_s)) }
 
-      it "does not create a new User" do
+      it "returns 422 and does not create user" do
         expect {
-          post :create, params: { user: duplicate_attributes }, format: :json
+          post :create, params: { user: user_params(email: email) }, format: :json
         }.not_to change(User, :count)
-      end
-
-      it "returns validation errors for email" do
-        post :create, params: { user: duplicate_attributes }, format: :json
-        json = JSON.parse(response.body)
-        expect(json["email_address"]).to include("has already been taken")
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response.parsed_body["email"]).to include("has already been taken")
       end
     end
 
     context "when CPF already exists" do
-      let!(:existing_user) { create(:user, cpf: "12345678900") }
-      let(:duplicate_attributes) {
-        attributes_for(:user, :owner, cpf: "12345678900")
-      }
+      let(:cpf) { Faker::Number.unique.number(digits: 11).to_s }
+      before { create_user!(user_params(cpf: cpf, email: Faker::Internet.unique.email, username: Faker::Internet.unique.username)) }
 
-      it "does not create a new User" do
+      it "returns 422 and does not create user" do
         expect {
-          post :create, params: { user: duplicate_attributes }, format: :json
+          post :create, params: { user: user_params(cpf: cpf) }, format: :json
         }.not_to change(User, :count)
-      end
-
-      it "returns validation errors for CPF" do
-        post :create, params: { user: duplicate_attributes }, format: :json
-        json = JSON.parse(response.body)
-        expect(json["cpf"]).to include("has already been taken")
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response.parsed_body["cpf"]).to include("has already been taken")
       end
     end
   end

@@ -1,14 +1,15 @@
 require "rails_helper"
 
-RSpec.describe PasswordsController, type: :routing do
-  it "roteia POST /users/password para passwords#create" do
-    expect(post: "/users/password").to route_to(controller: "passwords", action: "create")
+RSpec.describe Devise::PasswordsController, type: :routing do
+  it "routes POST /api/users/password to devise/passwords#create" do
+    expect(post: "/api/users/password").to route_to("devise/passwords#create")
   end
 
-  it "roteia PUT /users/password para passwords#update" do
-    expect(put: "/users/password").to route_to(controller: "passwords", action: "update")
+  it "routes PUT /api/users/password to devise/passwords#update" do
+    expect(put: "/api/users/password").to route_to("devise/passwords#update")
   end
-  it "roteia PATCH /users/password para passwords#update" do
-    expect(patch: "/users/password").to route_to(controller: "passwords", action: "update")
+
+  it "routes PATCH /api/users/password to devise/passwords#update" do
+    expect(patch: "/api/users/password").to route_to("devise/passwords#update")
   end
 end

@@ -110,11 +110,6 @@ GEM
     erubi (1.13.1)
     et-orbi (1.4.0)
       tzinfo
-    factory_bot (6.5.6)
-      activesupport (>= 6.1.0)
-    factory_bot_rails (6.5.1)
-      factory_bot (~> 6.5)
-      railties (>= 6.1.0)
     faker (3.5.3)
       i18n (>= 1.8.11, < 2)
     ffi (1.17.3-aarch64-linux-gnu)
@@ -221,7 +216,7 @@ GEM
     psych (5.3.1)
       date
       stringio
-    puma (7.1.0)
+    puma (7.2.0)
       nio4r (~> 2.0)
     raabro (1.4.0)
     racc (1.8.1)
@@ -390,7 +385,6 @@ DEPENDENCIES
   cpf_cnpj
   debug
   devise
-  factory_bot_rails
   faker
   image_processing (~> 1.2)
   jbuilder
