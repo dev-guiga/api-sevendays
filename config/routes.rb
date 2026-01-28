@@ -13,6 +13,7 @@ Rails.application.routes.draw do
     namespace :owner do
       resource :diary, only: [ :show ], controller: "diaries" do
         post "schedulings", to: "schedulings#create"
+        patch "schedulings/:id", to: "schedulings#update"
       end
       resources :diaries, only: [ :create, :update ]
     end

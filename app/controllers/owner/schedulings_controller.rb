@@ -22,6 +22,28 @@ class Owner::SchedulingsController < ApplicationController
     end
   end
 
+  def update
+    return if performed?
+
+    authorize @diary, :schedule?
+
+    result = UpdateOwnerSchedulingService.new(
+      diary: @diary,
+      scheduling_id: params[:id],
+      params: scheduling_params
+    ).call
+
+    if result.success
+      @scheduling = result.scheduling
+      @user = result.user
+      render :update, status: :ok
+    elsif result.error.is_a?(String)
+      render json: { error: result.error }, status: result.status
+    else
+      render json: { errors: result.error }, status: result.status
+    end
+  end
+
   private
   def scheduling_params
     params.require(:scheduling).permit(:user_email, :date, :time)
