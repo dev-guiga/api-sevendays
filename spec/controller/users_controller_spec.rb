@@ -14,8 +14,8 @@ RSpec.describe UsersController, type: :controller do
     it "routes POST /api/sign_up to users#create" do
       expect(post: "/api/sign_up").to route_to("users#create")
     end
-    it "routes GET /api/user/me to users#me" do
-      expect(get: "/api/user/me").to route_to("users#me")
+    it "routes GET /api/me to users#me" do
+      expect(get: "/api/me").to route_to("users#me")
     end
   end
 
