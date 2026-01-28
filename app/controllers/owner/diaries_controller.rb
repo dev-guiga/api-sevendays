@@ -1,5 +1,6 @@
 class Owner::DiariesController < ApplicationController
-  before_action :authenticate_user!, only: [ :create ]
+  before_action :authenticate_user!
+  before_action :set_diary, except: [ :create ]
 
   def create
     authorize Diary
@@ -21,7 +22,25 @@ class Owner::DiariesController < ApplicationController
     end
   end
 
+  def update
+    authorize @diary
+
+    if @diary.update(diary_params)
+      render :update, status: :ok
+    else
+      render json: { diary: @diary.errors }, status: :unprocessable_entity
+    end
+  end
+
   private
+  def set_diary
+    @diary = Diary.find_by(id: params[:id])
+
+    unless @diary
+      render json: { error: "Diary not found" }, status: :not_found
+    end
+  end
+
   def diary_params
     params.require(:diary).permit(:title, :description)
   end

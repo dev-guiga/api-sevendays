@@ -20,6 +20,10 @@ RSpec.describe Owner::DiariesController, type: :controller do
     it "routes POST /api/owner/diaries to owner/diaries#create" do
       expect(post: "/api/owner/diaries").to route_to("owner/diaries#create")
     end
+
+    it "routes PATCH /api/owner/diaries/:id to owner/diaries#update" do
+      expect(patch: "/api/owner/diaries/1").to route_to("owner/diaries#update", id: "1")
+    end
   end
 
   describe "#create" do
@@ -67,6 +71,63 @@ RSpec.describe Owner::DiariesController, type: :controller do
 
       it "returns 422" do
         post :create, params: { diary: diary_params.merge(title: nil), scheduling_rules: scheduling_rule_params }, format: :json
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        body = response.parsed_body
+        expect(body["diary"]).to include("title")
+      end
+    end
+  end
+
+  describe "#update" do
+    let(:diary) { create_diary!(user: owner) }
+
+    context "when authorized" do
+      before { session[:user_id] = owner.id }
+
+      it "updates the diary" do
+        patch :update, params: { id: diary.id, diary: { title: "Updated", description: "Updated description." } }, format: :json
+
+        expect(response).to have_http_status(:ok)
+        body = response.parsed_body
+        expect(body["success"]).to eq(true)
+        expect(body.dig("diary", "title")).to eq("Updated")
+        expect(body.dig("diary", "description")).to eq("Updated description.")
+      end
+    end
+
+    context "when diary does not exist" do
+      before { session[:user_id] = owner.id }
+
+      it "returns not found" do
+        patch :update, params: { id: 999999, diary: diary_params }, format: :json
+
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context "when user is not owner" do
+      before { session[:user_id] = user.id }
+
+      it "returns forbidden" do
+        patch :update, params: { id: diary.id, diary: diary_params }, format: :json
+
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context "when unauthenticated" do
+      it "returns unauthorized" do
+        patch :update, params: { id: diary.id, diary: diary_params }, format: :json
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context "when invalid parameters" do
+      before { session[:user_id] = owner.id }
+
+      it "returns 422" do
+        patch :update, params: { id: diary.id, diary: { title: nil } }, format: :json
 
         expect(response).to have_http_status(:unprocessable_entity)
         body = response.parsed_body

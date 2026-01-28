@@ -15,4 +15,14 @@ RSpec.describe DiaryPolicy, type: :policy do
       expect(policy).not_to permit(user, Diary)
     end
   end
+
+  permissions :update? do
+    it "allows owners" do
+      expect(policy).to permit(owner, Diary)
+    end
+
+    it "denies non-owners" do
+      expect(policy).not_to permit(user, Diary)
+    end
+  end
 end
