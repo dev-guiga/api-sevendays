@@ -5,14 +5,15 @@ RSpec.describe Scheduling, type: :model do
     user = create_user!
     diary = create_diary!(user: user)
     rule = create_scheduling_rule!(user: user, diary: diary)
+    scheduled_at = (Time.current + 1.hour).beginning_of_hour
 
     Scheduling.new(
       {
         user: user,
         diary: diary,
         scheduling_rule: rule,
-        date: Date.current,
-        time: "09:30",
+        date: scheduled_at.to_date,
+        time: scheduled_at.strftime("%H:%M"),
         description: Faker::Lorem.characters(number: 20),
         status: "pending",
         created_at: Time.current,

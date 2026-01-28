@@ -14,7 +14,7 @@ module DataHelpers
     {
       first_name: Faker::Name.first_name,
       last_name: Faker::Name.last_name,
-      username: Faker::Internet.unique.username(specifier: 6),
+      username: Faker::Internet.unique.username(specifier: 6)[0, 20],
       email: Faker::Internet.unique.email,
       password: "password123",
       password_confirmation: "password123",
@@ -45,11 +45,11 @@ module DataHelpers
     {
       user: user,
       diary: diary,
-      start_time: "09:00",
-      end_time: "10:00",
-      week_days: [ 1, 3, 5 ],
-      start_date: Date.current,
-      end_date: Date.current + 7.days
+      start_time: "00:00",
+      end_time: "23:59",
+      week_days: (0..6).to_a,
+      start_date: Date.current - 1.day,
+      end_date: Date.current + 30.days
     }.merge(overrides)
   end
 
@@ -58,12 +58,13 @@ module DataHelpers
   end
 
   def scheduling_attributes(user: create_user!, diary: create_diary!(user: user), rule: create_scheduling_rule!(user: user, diary: diary), overrides: {})
+    scheduled_at = (Time.current + 1.hour).beginning_of_hour
     {
       user: user,
       diary: diary,
       scheduling_rule: rule,
-      date: Date.current,
-      time: "09:30",
+      date: scheduled_at.to_date,
+      time: scheduled_at.strftime("%H:%M"),
       description: Faker::Lorem.characters(number: 30),
       status: "pending",
       created_at: Time.current,
