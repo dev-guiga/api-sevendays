@@ -5,20 +5,18 @@ class Owner::DiariesController < ApplicationController
   def create
     authorize Diary
 
-    @diary = current_user.build_diary(diary_params)
-    @scheduling_rule = @diary.build_scheduling_rule(scheduling_rule_params.merge(user: current_user))
+    result = CreateDiariesServices.new(
+      current_user: current_user,
+      diary_params: diary_params,
+      scheduling_rule_params: scheduling_rule_params
+    ).call
 
-    diary_valid = @diary.valid?
-    rule_valid = @scheduling_rule.valid?
-
-    if diary_valid && rule_valid
-      Diary.transaction do
-        @diary.save!
-        @scheduling_rule.save!
-      end
+    if result.success
+      @diary = result.diary
+      @scheduling_rule = result.scheduling_rule
       render :create, status: :created
     else
-      render json: { diary: @diary.errors, scheduling_rule: @scheduling_rule.errors }, status: :unprocessable_entity
+      render json: { diary: result.diary.errors, scheduling_rule: result.scheduling_rule.errors }, status: :unprocessable_entity
     end
   end
 
