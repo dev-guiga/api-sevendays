@@ -60,20 +60,20 @@ jobs:
     #      - 6379:6379
     #    options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
 
-     services:
-    postgres:
-      image: postgres:18-alpine
-      env:
-        POSTGRES_USER: sevendays_api
-        POSTGRES_PASSWORD: postgres
-        POSTGRES_DB: api_sevendays_test
-      ports:
-        - 5432:5432
-      options: >-
-        --health-cmd "pg_isready -U sevendays_api"
-        --health-interval 10s
-        --health-timeout 5s
-        --health-retries 5
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: sevendays_api
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: api_sevendays_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U sevendays_api"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
         
     steps:
       - name: Checkout code
