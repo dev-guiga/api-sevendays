@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_26_201500) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_28_141643) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -58,8 +58,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_26_201500) do
     t.string "status", default: "pending", null: false
     t.time "time", null: false
     t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
     t.index ["diary_id"], name: "index_schedulings_on_diary_id"
     t.index ["scheduling_rule_id"], name: "index_schedulings_on_scheduling_rule_id"
+    t.index ["user_id"], name: "index_schedulings_on_user_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -92,4 +94,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_26_201500) do
   add_foreign_key "scheduling_rules", "users"
   add_foreign_key "schedulings", "diaries"
   add_foreign_key "schedulings", "scheduling_rules"
+  add_foreign_key "schedulings", "users"
 end

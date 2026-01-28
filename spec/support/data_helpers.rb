@@ -59,6 +59,7 @@ module DataHelpers
 
   def scheduling_attributes(user: create_user!, diary: create_diary!(user: user), rule: create_scheduling_rule!(user: user, diary: diary), overrides: {})
     {
+      user: user,
       diary: diary,
       scheduling_rule: rule,
       date: Date.current,

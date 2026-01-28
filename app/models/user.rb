@@ -5,6 +5,7 @@ class User < ApplicationRecord
   has_one :diary, dependent: :destroy, inverse_of: :user
   has_one :address, dependent: :destroy, inverse_of: :user
   has_many :scheduling_rules, dependent: :destroy, inverse_of: :user
+  has_many :schedulings, dependent: :destroy, inverse_of: :user
   accepts_nested_attributes_for :address
 
   normalizes :email, with: ->(value) { value.downcase.strip }

@@ -11,6 +11,7 @@ Rails.application.routes.draw do
     }
 
     namespace :owner do
+      resource :diary, only: [ :show ], controller: "diaries"
       resources :diaries, only: [ :create, :update ]
     end
   end

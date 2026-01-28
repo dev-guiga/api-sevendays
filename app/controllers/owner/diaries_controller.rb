@@ -30,9 +30,19 @@ class Owner::DiariesController < ApplicationController
     end
   end
 
+  def show
+    authorize @diary
+    @schedulings = @diary.schedulings.includes(scheduling_rule: :user)
+    render :show, status: :ok
+  end
+
   private
   def set_diary
-    @diary = Diary.find_by(id: params[:id])
+    @diary = if params[:id].present?
+      Diary.find_by(id: params[:id])
+    else
+      current_user&.diary
+    end
 
     unless @diary
       render json: { error: "Diary not found" }, status: :not_found

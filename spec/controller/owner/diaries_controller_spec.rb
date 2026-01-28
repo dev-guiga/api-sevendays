@@ -21,6 +21,10 @@ RSpec.describe Owner::DiariesController, type: :controller do
       expect(post: "/api/owner/diaries").to route_to("owner/diaries#create")
     end
 
+    it "routes GET /api/owner/diary to owner/diaries#show" do
+      expect(get: "/api/owner/diary").to route_to("owner/diaries#show")
+    end
+
     it "routes PATCH /api/owner/diaries/:id to owner/diaries#update" do
       expect(patch: "/api/owner/diaries/1").to route_to("owner/diaries#update", id: "1")
     end
@@ -132,6 +136,75 @@ RSpec.describe Owner::DiariesController, type: :controller do
         expect(response).to have_http_status(:unprocessable_entity)
         body = response.parsed_body
         expect(body["diary"]).to include("title")
+      end
+    end
+  end
+
+  describe "#show" do
+    let(:diary) { create_diary!(user: owner) }
+    let(:rule) { create_scheduling_rule!(user: owner, diary: diary) }
+    let!(:scheduling) { Scheduling.create!(scheduling_attributes(user: user, diary: diary, rule: rule)) }
+
+    context "when authorized" do
+      before { session[:user_id] = owner.id }
+
+      it "returns diary data with schedulings" do
+        get :show, format: :json
+
+        expect(response).to have_http_status(:ok)
+        body = response.parsed_body
+        expect(body["success"]).to eq(true)
+        expect(body.dig("diary_data", "title")).to eq(diary.title)
+        expect(body.dig("diary_data", "description")).to eq(diary.description)
+
+        schedulings = body["schedulings"]
+        expect(schedulings.size).to eq(1)
+        expect(schedulings.first["user_name"]).to eq(user.full_name)
+        expect(schedulings.first["date"]).to eq(scheduling.date.to_s)
+        expect(schedulings.first["time"]).to be_present
+        expect(schedulings.first["status"]).to eq(scheduling.status)
+      end
+    end
+
+    context "when owner does not own the diary" do
+      let(:other_owner) { create_user!(status: "owner") }
+
+      before { session[:user_id] = other_owner.id }
+
+      it "returns forbidden" do
+        get :show, params: { id: diary.id }, format: :json
+
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context "when user is not owner" do
+      before { session[:user_id] = user.id }
+
+      it "returns forbidden" do
+        get :show, params: { id: diary.id }, format: :json
+
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context "when diary does not exist" do
+      let(:owner_without_diary) { create_user!(status: "owner") }
+
+      before { session[:user_id] = owner_without_diary.id }
+
+      it "returns not found" do
+        get :show, format: :json
+
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context "when unauthenticated" do
+      it "returns unauthorized" do
+        get :show, format: :json
+
+        expect(response).to have_http_status(:unauthorized)
       end
     end
   end

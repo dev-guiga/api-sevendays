@@ -8,6 +8,7 @@ RSpec.describe Scheduling, type: :model do
 
     Scheduling.new(
       {
+        user: user,
         diary: diary,
         scheduling_rule: rule,
         date: Date.current,
@@ -31,6 +32,10 @@ RSpec.describe Scheduling, type: :model do
 
     it "is invalid without a scheduling_rule" do
       expect(build_scheduling(scheduling_rule: nil)).to be_invalid
+    end
+
+    it "is invalid without a user" do
+      expect(build_scheduling(user: nil)).to be_invalid
     end
 
     it "is invalid without a date" do
