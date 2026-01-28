@@ -2,6 +2,7 @@ require "rails_helper"
 
 RSpec.describe UsersController, type: :controller do
   let(:params) { user_params }
+  let(:user) { create_user!(user_params(email: Faker::Internet.unique.email, password: "password123", password_confirmation: "password123")) }
 
   render_views
 
@@ -13,9 +14,12 @@ RSpec.describe UsersController, type: :controller do
     it "routes POST /api/sign_up to users#create" do
       expect(post: "/api/sign_up").to route_to("users#create")
     end
+    it "routes GET /api/user/me to users#me" do
+      expect(get: "/api/user/me").to route_to("users#me")
+    end
   end
 
-  describe "POST #create" do
+  describe "#create" do
     context "when success" do
       it "creates a user and returns 201" do
         expect {
@@ -121,6 +125,26 @@ RSpec.describe UsersController, type: :controller do
         }.not_to change(User, :count)
         expect(response).to have_http_status(:unprocessable_entity)
         expect(response.parsed_body["cpf"]).to include("has already been taken")
+      end
+    end
+  end
+
+  describe "#me" do
+    context "when success" do
+      before do
+        session[:user_id] = user.id
+      end
+
+      it "returns the current user" do
+        get :me, params: { user_id: :user_id }, format: :json
+        expect(response).to have_http_status(:ok)
+      end
+    end
+
+    context "when unauthorized" do
+      it "returns unauthorized" do
+        get :me, format: :json
+        expect(response).to have_http_status(:unauthorized)
       end
     end
   end

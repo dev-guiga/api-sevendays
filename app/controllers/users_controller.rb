@@ -12,6 +12,15 @@ class UsersController < ApplicationController
     end
   end
 
+  def me
+    if logged_in?
+      @user = current_user
+      render :me, status: :ok
+    else
+      render json: { error: "Unauthorized" }, status: :unauthorized
+    end
+  end
+
   private
   def user_params
     params.require(:user).permit(
