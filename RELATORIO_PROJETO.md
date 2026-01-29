@@ -152,4 +152,4 @@ Project-specific roadmap aligned with Rails Way. Each item includes problem, goa
 - More idiomatic and predictable code aligned with Rails Way.
 - Less duplication and lower controller complexity.
 - Business rules isolated and testable.
-- A consistent, consumer-friendly API.
+- A consistent, consumer-friendly API
