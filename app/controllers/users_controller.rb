@@ -1,6 +1,6 @@
 class UsersController < ApplicationController
   # skip_before_action :verify_authenticity_token
-  before_action :authenticate_user!, only: :me
+  before_action :authenticate_user!, only: :show
 
   def create
     @user = User.new(user_params)
@@ -14,9 +14,9 @@ class UsersController < ApplicationController
     end
   end
 
-  def me
+  def show
     @user = current_user
-    render :me, status: :ok
+    render :show, status: :ok
   end
 
   private

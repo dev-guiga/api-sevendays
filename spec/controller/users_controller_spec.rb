@@ -11,11 +11,11 @@ RSpec.describe UsersController, type: :controller do
   end
 
   describe "routing" do
-    it "routes POST /api/sign_up to users#create" do
-      expect(post: "/api/sign_up").to route_to("users#create")
+    it "routes POST /api/users to users#create" do
+      expect(post: "/api/users").to route_to("users#create")
     end
-    it "routes GET /api/me to users#me" do
-      expect(get: "/api/me").to route_to("users#me")
+    it "routes GET /api/user to users#show" do
+      expect(get: "/api/user").to route_to("users#show")
     end
   end
 
@@ -129,8 +129,8 @@ RSpec.describe UsersController, type: :controller do
     end
   end
 
-  describe "#me" do
-    subject(:perform_request) { get :me, format: :json }
+  describe "#show" do
+    subject(:perform_request) { get :show, format: :json }
 
     context "when authenticated" do
       before { sign_in(user) }

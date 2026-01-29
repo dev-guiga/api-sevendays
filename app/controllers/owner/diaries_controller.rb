@@ -38,11 +38,7 @@ class Owner::DiariesController < ApplicationController
 
   private
   def set_diary
-    @diary = if params[:id].present?
-      Diary.find_by(id: params[:id])
-    else
-      current_user&.diary
-    end
+    @diary = current_user&.diary
 
     return if @diary
 

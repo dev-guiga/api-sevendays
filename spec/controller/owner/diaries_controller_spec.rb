@@ -18,16 +18,16 @@ RSpec.describe Owner::DiariesController, type: :controller do
   }
 
   describe "routing" do
-    it "routes POST /api/owner/diaries to owner/diaries#create" do
-      expect(post: "/api/owner/diaries").to route_to("owner/diaries#create")
+    it "routes POST /api/owner/diary to owner/diaries#create" do
+      expect(post: "/api/owner/diary").to route_to("owner/diaries#create")
     end
 
     it "routes GET /api/owner/diary to owner/diaries#show" do
       expect(get: "/api/owner/diary").to route_to("owner/diaries#show")
     end
 
-    it "routes PATCH /api/owner/diaries/:id to owner/diaries#update" do
-      expect(patch: "/api/owner/diaries/1").to route_to("owner/diaries#update", id: "1")
+    it "routes PATCH /api/owner/diary to owner/diaries#update" do
+      expect(patch: "/api/owner/diary").to route_to("owner/diaries#update")
     end
   end
 
@@ -86,13 +86,13 @@ RSpec.describe Owner::DiariesController, type: :controller do
   end
 
   describe "#update" do
-    let(:diary) { create_diary!(user: owner) }
+    let!(:diary) { create_diary!(user: owner) }
 
     context "when authorized" do
       before { sign_in(owner) }
 
       it "updates the diary" do
-        patch :update, params: { id: diary.id, diary: { title: "Updated", description: "Updated description." } }, format: :json
+        patch :update, params: { diary: { title: "Updated", description: "Updated description." } }, format: :json
 
         expect(response).to have_http_status(:ok)
         body = response.parsed_body
@@ -103,20 +103,24 @@ RSpec.describe Owner::DiariesController, type: :controller do
     end
 
     context "when diary does not exist" do
-      before { sign_in(owner) }
+      let(:owner_without_diary) { create_user!(status: "owner") }
+
+      before { sign_in(owner_without_diary) }
 
       it "returns not found" do
-        patch :update, params: { id: 999999, diary: diary_params }, format: :json
+        patch :update, params: { diary: diary_params }, format: :json
 
         expect(response).to have_http_status(:not_found)
       end
     end
 
     context "when user is not owner" do
+      let!(:user_diary) { create_diary!(user: user) }
+
       before { sign_in(user) }
 
       it "returns forbidden" do
-        patch :update, params: { id: diary.id, diary: diary_params }, format: :json
+        patch :update, params: { diary: diary_params }, format: :json
 
         expect(response).to have_http_status(:forbidden)
       end
@@ -124,7 +128,7 @@ RSpec.describe Owner::DiariesController, type: :controller do
 
     context "when unauthenticated" do
       it "returns unauthorized" do
-        patch :update, params: { id: diary.id, diary: diary_params }, format: :json
+        patch :update, params: { diary: diary_params }, format: :json
         expect(response).to have_http_status(:unauthorized)
       end
     end
@@ -133,7 +137,7 @@ RSpec.describe Owner::DiariesController, type: :controller do
       before { sign_in(owner) }
 
       it "returns 422" do
-        patch :update, params: { id: diary.id, diary: { title: nil } }, format: :json
+        patch :update, params: { diary: { title: nil } }, format: :json
 
         expect(response).to have_http_status(:unprocessable_entity)
         details = response.parsed_body.dig("error", "details", "diary")
@@ -168,23 +172,13 @@ RSpec.describe Owner::DiariesController, type: :controller do
       end
     end
 
-    context "when owner does not own the diary" do
-      let(:other_owner) { create_user!(status: "owner") }
-
-      before { sign_in(other_owner) }
-
-      it "returns forbidden" do
-        get :show, params: { id: diary.id }, format: :json
-
-        expect(response).to have_http_status(:forbidden)
-      end
-    end
-
     context "when user is not owner" do
+      let!(:user_diary) { create_diary!(user: user) }
+
       before { sign_in(user) }
 
       it "returns forbidden" do
-        get :show, params: { id: diary.id }, format: :json
+        get :show, format: :json
 
         expect(response).to have_http_status(:forbidden)
       end
