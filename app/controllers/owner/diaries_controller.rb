@@ -5,7 +5,7 @@ class Owner::DiariesController < ApplicationController
   def create
     authorize Diary
 
-    result = CreateDiariesServices.new(
+    result = CreateDiaryService.new(
       current_user: current_user,
       diary_params: diary_params,
       scheduling_rule_params: scheduling_rule_params

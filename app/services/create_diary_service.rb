@@ -1,4 +1,4 @@
-class CreateDiariesServices
+class CreateDiaryService
   Result = Struct.new(:diary, :scheduling_rule, :success)
 
   def initialize(current_user:, diary_params:, scheduling_rule_params:)
