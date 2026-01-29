@@ -30,6 +30,10 @@ RSpec.describe Owner::SchedulingsController, type: :controller do
     it "routes PATCH /api/owner/diary/schedulings/:id to owner/schedulings#update" do
       expect(patch: "/api/owner/diary/schedulings/1").to route_to("owner/schedulings#update", id: "1")
     end
+
+    it "routes DELETE /api/owner/diary/schedulings/:id to owner/schedulings#destroy" do
+      expect(delete: "/api/owner/diary/schedulings/1").to route_to("owner/schedulings#destroy", id: "1")
+    end
   end
 
   describe "#create" do
@@ -337,6 +341,120 @@ RSpec.describe Owner::SchedulingsController, type: :controller do
     context "when unauthenticated" do
       it "returns unauthorized" do
         patch :update, params: update_params, format: :json
+
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+  end
+
+  describe "#destroy" do
+    let!(:scheduling) {
+      Scheduling.create!(
+        scheduling_attributes(
+          user: user,
+          diary: diary,
+          rule: scheduling_rule,
+          overrides: {
+            date: scheduled_at.to_date,
+            time: scheduled_at.strftime("%H:%M")
+          }
+        )
+      )
+    }
+
+    context "when authorized" do
+      before do
+        sign_in(owner)
+        scheduling_rule
+      end
+
+      it "cancels the scheduling and returns data" do
+        delete :destroy, params: { id: scheduling.id }, format: :json
+
+        expect(response).to have_http_status(:ok)
+        body = response.parsed_body
+        expect(body["success"]).to eq(true)
+        expect(body["user_email"]).to eq(user.email)
+        expect(body["status"]).to eq("cancelled")
+
+        scheduling.reload
+        expect(scheduling).to be_cancelled
+      end
+    end
+
+    context "when cancelling within lead time for short sessions" do
+      let(:scheduling_rule) {
+        create_scheduling_rule!(
+          user: owner,
+          diary: diary,
+          overrides: {
+            session_duration_minutes: 30
+          }
+        )
+      }
+
+      around do |example|
+        travel_to(Time.zone.local(2026, 1, 1, 10, 10, 0)) { example.run }
+      end
+
+      before do
+        sign_in(owner)
+        scheduling_rule
+        too_soon_at = Time.current.beginning_of_hour + 30.minutes
+        scheduling.update_columns(
+          date: too_soon_at.to_date,
+          time: too_soon_at
+        )
+      end
+
+      it "returns unprocessable entity" do
+        delete :destroy, params: { id: scheduling.id }, format: :json
+
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+    end
+
+    context "when scheduling is not found" do
+      before do
+        sign_in(owner)
+        scheduling_rule
+      end
+
+      it "returns not found" do
+        delete :destroy, params: { id: 999999 }, format: :json
+
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context "when current user is not owner" do
+      let(:non_owner) { create_user!(status: "user") }
+      let!(:non_owner_diary) { create_diary!(user: non_owner) }
+
+      before { sign_in(non_owner) }
+
+      it "returns forbidden" do
+        delete :destroy, params: { id: scheduling.id }, format: :json
+
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context "when diary does not exist" do
+      let(:owner_without_diary) { create_user!(status: "owner") }
+
+      before { sign_in(owner_without_diary) }
+
+      it "returns not found" do
+        delete :destroy, params: { id: scheduling.id }, format: :json
+
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context "when unauthenticated" do
+      it "returns unauthorized" do
+        delete :destroy, params: { id: scheduling.id }, format: :json
 
         expect(response).to have_http_status(:unauthorized)
       end

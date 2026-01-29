@@ -44,6 +44,24 @@ class Owner::SchedulingsController < ApplicationController
     end
   end
 
+  def destroy
+    return if performed?
+
+    authorize @diary, :schedule?
+
+    result = CancelOwnerSchedulingService.new(diary: @diary, scheduling_id: params[:id]).call
+
+    if result.success?
+      @scheduling = result.payload[:scheduling]
+      @user = result.payload[:user]
+      render :destroy, status: :ok
+    elsif result.errors.is_a?(String)
+      render_error(code: result.status.to_s, message: result.errors, status: result.status, details: nil)
+    else
+      render_validation_error(details: result.errors)
+    end
+  end
+
   private
   def scheduling_params
     params.require(:scheduling).permit(:user_email, :date, :time)
@@ -54,6 +72,5 @@ class Owner::SchedulingsController < ApplicationController
     return if @diary
 
     render_error(code: "not_found", message: "Diary not found", status: :not_found, details: nil)
-    return
   end
 end
