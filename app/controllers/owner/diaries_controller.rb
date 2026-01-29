@@ -21,6 +21,8 @@ class Owner::DiariesController < ApplicationController
   end
 
   def update
+    return if performed?
+
     authorize @diary
 
     if @diary.update(diary_params)
@@ -31,6 +33,8 @@ class Owner::DiariesController < ApplicationController
   end
 
   def show
+    return if performed?
+
     authorize @diary
     @schedulings = @diary.schedulings.includes(scheduling_rule: :user)
     render :show, status: :ok
@@ -43,6 +47,7 @@ class Owner::DiariesController < ApplicationController
     return if @diary
 
     render_error(code: "not_found", message: "Diary not found", status: :not_found, details: nil)
+    return
   end
 
   def diary_params

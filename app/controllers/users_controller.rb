@@ -3,14 +3,13 @@ class UsersController < ApplicationController
   before_action :authenticate_user!, only: :show
 
   def create
-    @user = User.new(user_params)
-    requested_status = params.dig(:user, :status)
+    result = CreateUserService.new(user_params).call
 
-    @user.status = (requested_status == "owner" || requested_status == :owner) ? "owner" : "user"
-    if @user.save
+    if result.success?
+      @user = result.payload[:user]
       render :create, status: :created
     else
-      render_validation_error(details: @user.errors)
+      render_validation_error(details: result.errors)
     end
   end
 

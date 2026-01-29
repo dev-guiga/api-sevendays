@@ -54,5 +54,6 @@ class Owner::SchedulingsController < ApplicationController
     return if @diary
 
     render_error(code: "not_found", message: "Diary not found", status: :not_found, details: nil)
+    return
   end
 end

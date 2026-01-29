@@ -30,11 +30,21 @@ class CreateUserService
       address_attributes: [ :address, :city, :state, :neighborhood ]
     )
 
-    permitted[:address_attributes] ||= address_params_from_root
+    address_attributes = permitted[:address_attributes] || address_params_from_root
+    if address_attributes.present?
+      permitted[:address_attributes] = address_attributes
+    else
+      permitted.delete(:address_attributes)
+    end
+    permitted[:status] = normalized_status(permitted[:status])
     permitted
   end
 
   def address_params_from_root
     user_params.permit(:address, :city, :state, :neighborhood).to_h.compact_blank.presence
+  end
+
+  def normalized_status(value)
+    value.to_s == "owner" ? "owner" : "user"
   end
 end
