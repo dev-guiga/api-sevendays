@@ -33,7 +33,7 @@ RSpec.describe Owner::DiariesController, type: :controller do
 
   describe "#create" do
     context "when authorized" do
-      before { session[:user_id] = owner.id }
+      before { sign_in(owner) }
 
       it "creates a diary and a scheduling rule" do
         expect {
@@ -54,7 +54,7 @@ RSpec.describe Owner::DiariesController, type: :controller do
     end
 
     context "when user is not owner" do
-      before { session[:user_id] = user.id }
+      before { sign_in(user) }
 
       it "returns forbidden" do
         expect {
@@ -73,7 +73,7 @@ RSpec.describe Owner::DiariesController, type: :controller do
     end
 
     context "when invalid parameters" do
-      before { session[:user_id] = owner.id }
+      before { sign_in(owner) }
 
       it "returns 422" do
         post :create, params: { diary: diary_params.merge(title: nil), scheduling_rules: scheduling_rule_params }, format: :json
@@ -89,7 +89,7 @@ RSpec.describe Owner::DiariesController, type: :controller do
     let(:diary) { create_diary!(user: owner) }
 
     context "when authorized" do
-      before { session[:user_id] = owner.id }
+      before { sign_in(owner) }
 
       it "updates the diary" do
         patch :update, params: { id: diary.id, diary: { title: "Updated", description: "Updated description." } }, format: :json
@@ -103,7 +103,7 @@ RSpec.describe Owner::DiariesController, type: :controller do
     end
 
     context "when diary does not exist" do
-      before { session[:user_id] = owner.id }
+      before { sign_in(owner) }
 
       it "returns not found" do
         patch :update, params: { id: 999999, diary: diary_params }, format: :json
@@ -113,7 +113,7 @@ RSpec.describe Owner::DiariesController, type: :controller do
     end
 
     context "when user is not owner" do
-      before { session[:user_id] = user.id }
+      before { sign_in(user) }
 
       it "returns forbidden" do
         patch :update, params: { id: diary.id, diary: diary_params }, format: :json
@@ -130,7 +130,7 @@ RSpec.describe Owner::DiariesController, type: :controller do
     end
 
     context "when invalid parameters" do
-      before { session[:user_id] = owner.id }
+      before { sign_in(owner) }
 
       it "returns 422" do
         patch :update, params: { id: diary.id, diary: { title: nil } }, format: :json
@@ -148,7 +148,7 @@ RSpec.describe Owner::DiariesController, type: :controller do
     let!(:scheduling) { Scheduling.create!(scheduling_attributes(user: user, diary: diary, rule: rule)) }
 
     context "when authorized" do
-      before { session[:user_id] = owner.id }
+      before { sign_in(owner) }
 
       it "returns diary data with schedulings" do
         get :show, format: :json
@@ -171,7 +171,7 @@ RSpec.describe Owner::DiariesController, type: :controller do
     context "when owner does not own the diary" do
       let(:other_owner) { create_user!(status: "owner") }
 
-      before { session[:user_id] = other_owner.id }
+      before { sign_in(other_owner) }
 
       it "returns forbidden" do
         get :show, params: { id: diary.id }, format: :json
@@ -181,7 +181,7 @@ RSpec.describe Owner::DiariesController, type: :controller do
     end
 
     context "when user is not owner" do
-      before { session[:user_id] = user.id }
+      before { sign_in(user) }
 
       it "returns forbidden" do
         get :show, params: { id: diary.id }, format: :json
@@ -193,7 +193,7 @@ RSpec.describe Owner::DiariesController, type: :controller do
     context "when diary does not exist" do
       let(:owner_without_diary) { create_user!(status: "owner") }
 
-      before { session[:user_id] = owner_without_diary.id }
+      before { sign_in(owner_without_diary) }
 
       it "returns not found" do
         get :show, format: :json

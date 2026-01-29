@@ -35,7 +35,7 @@ RSpec.describe Owner::SchedulingsController, type: :controller do
   describe "#create" do
     context "when authorized" do
       before do
-        session[:user_id] = owner.id
+        sign_in(owner)
         scheduling_rule
       end
 
@@ -75,7 +75,7 @@ RSpec.describe Owner::SchedulingsController, type: :controller do
       end
 
       before do
-        session[:user_id] = owner.id
+        sign_in(owner)
         scheduling_rule
       end
 
@@ -104,7 +104,7 @@ RSpec.describe Owner::SchedulingsController, type: :controller do
       }
 
       before do
-        session[:user_id] = owner.id
+        sign_in(owner)
         scheduling_rule
       end
 
@@ -124,7 +124,7 @@ RSpec.describe Owner::SchedulingsController, type: :controller do
 
     context "when user is not found" do
       before do
-        session[:user_id] = owner.id
+        sign_in(owner)
         scheduling_rule
       end
 
@@ -137,7 +137,7 @@ RSpec.describe Owner::SchedulingsController, type: :controller do
 
     context "when user is owner" do
       before do
-        session[:user_id] = owner.id
+        sign_in(owner)
         scheduling_rule
       end
 
@@ -152,7 +152,7 @@ RSpec.describe Owner::SchedulingsController, type: :controller do
       let(:non_owner) { create_user!(status: "user") }
       let!(:non_owner_diary) { create_diary!(user: non_owner) }
 
-      before { session[:user_id] = non_owner.id }
+      before { sign_in(non_owner) }
 
       it "returns forbidden" do
         post :create, params: scheduling_params, format: :json
@@ -164,7 +164,7 @@ RSpec.describe Owner::SchedulingsController, type: :controller do
     context "when diary does not exist" do
       let(:owner_without_diary) { create_user!(status: "owner") }
 
-      before { session[:user_id] = owner_without_diary.id }
+      before { sign_in(owner_without_diary) }
 
       it "returns not found" do
         post :create, params: scheduling_params, format: :json
@@ -213,7 +213,7 @@ RSpec.describe Owner::SchedulingsController, type: :controller do
 
     context "when authorized" do
       before do
-        session[:user_id] = owner.id
+        sign_in(owner)
         scheduling_rule
       end
 
@@ -248,7 +248,7 @@ RSpec.describe Owner::SchedulingsController, type: :controller do
       end
 
       before do
-        session[:user_id] = owner.id
+        sign_in(owner)
         scheduling_rule
         too_soon_at = Time.current.beginning_of_hour + 30.minutes
         scheduling.update_columns(
@@ -266,7 +266,7 @@ RSpec.describe Owner::SchedulingsController, type: :controller do
 
     context "when scheduling is not found" do
       before do
-        session[:user_id] = owner.id
+        sign_in(owner)
         scheduling_rule
       end
 
@@ -279,7 +279,7 @@ RSpec.describe Owner::SchedulingsController, type: :controller do
 
     context "when user is not found" do
       before do
-        session[:user_id] = owner.id
+        sign_in(owner)
         scheduling_rule
       end
 
@@ -296,7 +296,7 @@ RSpec.describe Owner::SchedulingsController, type: :controller do
       let(:other_user) { create_user!(status: "user") }
 
       before do
-        session[:user_id] = owner.id
+        sign_in(owner)
         scheduling_rule
       end
 
@@ -313,7 +313,7 @@ RSpec.describe Owner::SchedulingsController, type: :controller do
       let(:non_owner) { create_user!(status: "user") }
       let!(:non_owner_diary) { create_diary!(user: non_owner) }
 
-      before { session[:user_id] = non_owner.id }
+      before { sign_in(non_owner) }
 
       it "returns forbidden" do
         patch :update, params: update_params, format: :json
@@ -325,7 +325,7 @@ RSpec.describe Owner::SchedulingsController, type: :controller do
     context "when diary does not exist" do
       let(:owner_without_diary) { create_user!(status: "owner") }
 
-      before { session[:user_id] = owner_without_diary.id }
+      before { sign_in(owner_without_diary) }
 
       it "returns not found" do
         patch :update, params: update_params, format: :json

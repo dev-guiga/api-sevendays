@@ -1,5 +1,7 @@
 class UsersController < ApplicationController
   # skip_before_action :verify_authenticity_token
+  before_action :authenticate_user!, only: :me
+
   def create
     @user = User.new(user_params)
     requested_status = params.dig(:user, :status)
@@ -13,12 +15,8 @@ class UsersController < ApplicationController
   end
 
   def me
-    if logged_in?
-      @user = current_user
-      render :me, status: :ok
-    else
-      render json: { error: "Unauthorized" }, status: :unauthorized
-    end
+    @user = current_user
+    render :me, status: :ok
   end
 
   private

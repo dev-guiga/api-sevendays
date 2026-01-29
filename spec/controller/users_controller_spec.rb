@@ -130,20 +130,20 @@ RSpec.describe UsersController, type: :controller do
   end
 
   describe "#me" do
-    context "when success" do
-      before do
-        session[:user_id] = user.id
-      end
+    subject(:perform_request) { get :me, format: :json }
+
+    context "when authenticated" do
+      before { sign_in(user) }
 
       it "returns the current user" do
-        get :me, params: { user_id: :user_id }, format: :json
+        perform_request
         expect(response).to have_http_status(:ok)
       end
     end
 
-    context "when unauthorized" do
+    context "when unauthenticated" do
       it "returns unauthorized" do
-        get :me, format: :json
+        perform_request
         expect(response).to have_http_status(:unauthorized)
       end
     end

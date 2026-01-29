@@ -1,115 +1,155 @@
-# Plano de melhorias do projeto (Rails) — versao objetiva
+# API Refactor Plan (Rails Way + Best Practices)
 
-Documento especifico do projeto atual, com melhorias alinhadas ao Rails Way. Cada item traz: problema, objetivo, acao concreta e criterio de pronto. Prioridade do mais critico ao menos critico.
+Project-specific roadmap aligned with Rails Way. Each item includes problem, goal, concrete actions, and definition of done. Prioritized from most critical to least critical.
 
-## 1) Autenticacao e sessao (PRIORIDADE: MUITO ALTA)
-**Problema**: fluxo de autenticacao inconsistente e possivel conflito com helpers padrao.
-**Objetivo**: um unico caminho de auth, previsivel e seguro.
-**Acoes**:
-- Remover overrides que conflitam com o mecanismo de auth.
-- Centralizar `current_user` e `authenticate_user!` em um fluxo unico.
-- Revisar login/logout para garantir sessao consistente.
-**Pronto quando**:
-- Login/logout funcionam em todos os endpoints.
-- `current_user` vem sempre da mesma fonte.
-- Testes de auth passam sem mocks inconsistentes.
+## 1) Authentication & Session (PRIORITY: VERY HIGH)
+**Problem:** Authentication flow is inconsistent and may conflict with default helpers.
+**Goal:** A single, predictable, secure auth path — Devise is the source of truth.
 
-## 2) Tratativa de erros (PRIORIDADE: ALTA)
-**Problema**: respostas de erro variam por controller e nao ha padrao unico.
-**Objetivo**: erros previsiveis e consistentes.
-**Acoes**:
-- Criar resposta padrao: `{ error: { code, message, details } }`.
-- Centralizar `rescue_from` para erros comuns (not found, validation, authorization).
-- Garantir status HTTP corretos em todas as acoes.
-**Pronto quando**:
-- Todos os erros retornam no mesmo formato.
-- Status HTTP e mensagens sao consistentes.
+**Actions**
+- Remove overrides that conflict with Devise's authentication mechanism.
+- Centralize `current_user` and `authenticate_user!` into one unified flow.
+- Review login/logout to ensure session behavior is consistent.
 
-## 3) RESTful e rotas (PRIORIDADE: ALTA)
-**Problema**: endpoints customizados fogem do padrao REST.
-**Objetivo**: rotas idiomaticas e faceis de manter.
-**Acoes**:
-- Migrar para `resources` quando possivel.
-- Remover verbos no path e alinhar actions padrao.
-- Documentar claramente excecoes inevitaveis.
-**Pronto quando**:
-- Rotas principais seguem recursos e acoes REST.
-- Documentacao reflete o padrao.
+**Done when**
+- Login/logout works across all endpoints.
+- `current_user` always comes from the same source.
+- Auth tests pass without inconsistent mocks.
 
-## 4) Services (PRIORIDADE: MEDIA)
-**Problema**: services fora do padrao e nomes inconsistentes.
-**Objetivo**: padrao unico e previsivel.
-**Acoes**:
-- Mover para `app/services`.
-- Renomear para singular (ex: `CreateDiaryService`).
-- Adotar interface padrao: `call` + retorno consistente (`success?`, `errors`, `payload`).
-**Pronto quando**:
-- Todos os services seguem o mesmo padrao de pasta, nome e interface.
+---
 
-## 5) Models e regras de negocio (PRIORIDADE: MEDIA)
-**Problema**: metodos longos e validacoes nao idiomaticas.
-**Objetivo**: modelos menores e mais testaveis.
-**Acoes**:
-- Quebrar metodos longos em validadores/metodos menores.
-- Remover validacoes de timestamps.
-- Usar `enum` para status.
-**Pronto quando**:
-- Metodos complexos estao divididos.
-- Validacoes refletem apenas regras de negocio.
+## 2) Error Handling (PRIORITY: HIGH)
+**Problem:** Error responses vary by controller; there is no single standard.
+**Goal:** Predictable, consistent error responses.
 
-## 6) Controllers e resposta JSON (PRIORIDADE: MEDIA)
-**Problema**: controllers com logica excessiva e renders inconsistentes.
-**Objetivo**: controllers finos e padronizados.
-**Acoes**:
-- Controllers apenas orquestram (chamam service/queries).
-- Respostas seguem o mesmo formato JSON.
-- Evitar render sem `return` em callbacks.
-**Pronto quando**:
-- Controllers estao simples e consistentes.
-- JSON de resposta segue o mesmo esquema.
+**Actions**
+- Define a standard response shape: `{ error: { code, message, details } }`.
+- Centralize `rescue_from` for common errors (not found, validation, authorization).
+- Ensure correct HTTP status codes across all actions.
 
-## 7) Testes e CI (PRIORIDADE: MEDIA)
-**Problema**: cobertura parcial e pipeline desalinhada com o runner real.
-**Objetivo**: confiabilidade e feedback rapido.
-**Acoes**:
-- Garantir que CI rode o mesmo runner usado localmente.
-- Adicionar specs para services e request specs.
-- Cobrir fluxos principais (auth, CRUD principal, erros).
-**Pronto quando**:
-- CI passa com a mesma suite usada localmente.
-- Fluxos criticos cobertos.
+**Done when**
+- All errors return the same JSON format.
+- HTTP statuses and messages are consistent everywhere.
 
-## 8) Infra e configuracao (PRIORIDADE: BAIXA)
-**Problema**: pequenos desalinhamentos entre config local e docker.
-**Objetivo**: setup previsivel.
-**Acoes**:
-- Alinhar configs de DB com ambiente containerizado.
-- Garantir que CORS esteja correto para consumo externo.
-**Pronto quando**:
-- Ambiente local sobe sem ajustes manuais.
+---
 
-## 9) Documentacao (PRIORIDADE: BAIXA)
-**Problema**: README sem guia pratico.
-**Objetivo**: onboarding rapido.
-**Acoes**:
-- Adicionar setup, comandos essenciais e exemplos de requests.
-- Listar endpoints principais e fluxos basicos.
-**Pronto quando**:
-- Novo dev consegue rodar e testar em poucos minutos.
+## 3) RESTful Routes (PRIORITY: HIGH)
+**Problem:** Custom endpoints drift from REST conventions.
+**Goal:** Idiomatic routes that are easy to maintain.
 
-## Checklist de avaliacao (OK / Medio / Ruim)
-1. Autenticacao e sessao
-2. Tratativa de erros
-3. RESTful e rotas
+**Actions**
+- Migrate to `resources` wherever possible.
+- Remove verbs from paths and align to standard REST actions.
+- Clearly document unavoidable exceptions.
+
+**Done when**
+- Main routes follow resource-based REST patterns.
+- Documentation reflects the final routing standard.
+
+---
+
+## 4) Services (PRIORITY: MEDIUM)
+**Problem:** Services are inconsistent in naming and structure.
+**Goal:** One predictable service pattern.
+
+**Actions**
+- Move services to `app/services`.
+- Rename to singular (e.g., `CreateDiaryService`).
+- Adopt a standard interface: `call` + consistent result (`success?`, `errors`, `payload`).
+
+**Done when**
+- All services share the same folder location, naming rules, and interface.
+
+---
+
+## 5) Models & Business Rules (PRIORITY: MEDIUM)
+**Problem:** Long methods and non-idiomatic validations.
+**Goal:** Smaller, more testable models.
+
+**Actions**
+- Split long methods into validators / smaller methods.
+- Remove timestamp validations.
+- Use `enum` for status fields.
+
+**Done when**
+- Complex logic is split into smaller, testable units.
+- Validations reflect only business rules.
+
+---
+
+## 6) Controllers & JSON Responses (PRIORITY: MEDIUM)
+**Problem:** Controllers contain too much logic and render inconsistently.
+**Goal:** Thin, standardized controllers.
+
+**Actions**
+- Controllers should orchestrate only (call services/queries).
+- Responses should follow one JSON format.
+- Avoid rendering in callbacks without an explicit `return`.
+
+**Done when**
+- Controllers are simple and consistent.
+- JSON responses follow the same schema everywhere.
+
+---
+
+## 7) Tests & CI (PRIORITY: MEDIUM)
+**Problem:** Partial coverage and CI differs from the real local runner.
+**Goal:** Reliable, fast feedback.
+
+**Actions**
+- Ensure CI runs the same test runner used locally.
+- Add specs for services and request specs.
+- Cover critical flows (auth, main CRUD, errors).
+- Align specs with Better Specs best practices for readability, intent, and safety.
+
+**Done when**
+- CI passes with the same suite used locally.
+- Critical flows are covered by tests.
+- Specs follow Better Specs guidance (clear contexts, minimal stubs, behavior-first).
+
+---
+
+## 8) Infrastructure & Configuration (PRIORITY: LOW)
+**Problem:** Small mismatches between local and Docker config.
+**Goal:** Predictable setup.
+
+**Actions**
+- Align DB configs with the container environment.
+- Ensure CORS is correct for external consumers.
+
+**Done when**
+- Local environment boots without manual tweaks.
+
+---
+
+## 9) Documentation (PRIORITY: LOW)
+**Problem:** README lacks a practical guide.
+**Goal:** Fast onboarding.
+
+**Actions**
+- Add setup steps, essential commands, and request examples.
+- List key endpoints and basic flows.
+
+**Done when**
+- A new developer can run and test the project in a few minutes.
+
+---
+
+## Evaluation Checklist (OK / Medium / Bad)
+1. Authentication & session
+2. Error handling
+3. RESTful routes
 4. Services
-5. Models e regras de negocio
-6. Controllers e JSON
-7. Testes e CI
-8. Infra e configuracao
-9. Documentacao
+5. Models & business rules
+6. Controllers & JSON
+7. Tests & CI
+8. Infrastructure & configuration
+9. Documentation
 
-## Resultado esperado
-- Codigo mais idiomatico e previsivel.
-- Menos duplicacao e menor complexidade nos controllers.
-- Regras de negocio isoladas e testaveis.
-- API consistente e facil de consumir.
+---
+
+## Expected Outcome
+- More idiomatic and predictable code aligned with Rails Way.
+- Less duplication and lower controller complexity.
+- Business rules isolated and testable.
+- A consistent, consumer-friendly API.
