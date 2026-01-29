@@ -54,6 +54,13 @@ class Owner::DiariesController < ApplicationController
   end
 
   def scheduling_rule_params
-    params.require(:scheduling_rules).permit(:start_time, :end_time, :start_date, :end_date, week_days: [])
+    params.require(:scheduling_rules).permit(
+      :start_time,
+      :end_time,
+      :start_date,
+      :end_date,
+      :session_duration_minutes,
+      week_days: []
+    )
   end
 end
