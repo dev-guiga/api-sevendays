@@ -1,6 +1,4 @@
 class CreateOwnerSchedulingService
-  Result = Struct.new(:success, :scheduling, :user, :error, :status)
-
   def initialize(diary:, params:)
     @diary = diary
     @params = params
@@ -28,10 +26,18 @@ class CreateOwnerSchedulingService
       )
 
       if scheduling.save
-        return Result.new(true, scheduling, user, nil, nil)
+        return ServiceResult.new(
+          success: true,
+          payload: { scheduling: scheduling, user: user }
+        )
       end
 
-      Result.new(false, scheduling, user, scheduling.errors, :unprocessable_entity)
+      ServiceResult.new(
+        success: false,
+        payload: { scheduling: scheduling, user: user },
+        errors: scheduling.errors,
+        status: :unprocessable_entity
+      )
     end
   end
 
@@ -39,6 +45,6 @@ class CreateOwnerSchedulingService
   attr_reader :diary, :params
 
   def error_result(message, status)
-    Result.new(false, nil, nil, message, status)
+    ServiceResult.new(success: false, errors: message, status: status)
   end
 end

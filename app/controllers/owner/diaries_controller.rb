@@ -11,12 +11,12 @@ class Owner::DiariesController < ApplicationController
       scheduling_rule_params: scheduling_rule_params
     ).call
 
-    if result.success
-      @diary = result.diary
-      @scheduling_rule = result.scheduling_rule
+    if result.success?
+      @diary = result.payload[:diary]
+      @scheduling_rule = result.payload[:scheduling_rule]
       render :create, status: :created
     else
-      render_validation_error(details: { diary: result.diary.errors, scheduling_rule: result.scheduling_rule.errors })
+      render_validation_error(details: result.errors)
     end
   end
 
