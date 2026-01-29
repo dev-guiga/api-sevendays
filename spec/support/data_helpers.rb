@@ -47,6 +47,7 @@ module DataHelpers
       diary: diary,
       start_time: "00:00",
       end_time: "23:59",
+      session_duration_minutes: 60,
       week_days: (0..6).to_a,
       start_date: Date.current - 1.day,
       end_date: Date.current + 30.days

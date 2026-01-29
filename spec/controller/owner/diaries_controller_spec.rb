@@ -10,6 +10,7 @@ RSpec.describe Owner::DiariesController, type: :controller do
     {
       start_time: "09:00",
       end_time: "10:00",
+      session_duration_minutes: 60,
       week_days: [ 1, 3, 5 ],
       start_date: Date.current,
       end_date: Date.current + 7.days
@@ -44,6 +45,7 @@ RSpec.describe Owner::DiariesController, type: :controller do
         expect(body["success"]).to eq(true)
         expect(body.dig("diary", "title")).to eq(diary_params[:title])
         expect(body.dig("scheduling_rule", "week_days")).to eq(scheduling_rule_params[:week_days])
+        expect(body.dig("scheduling_rule", "session_duration_minutes")).to eq(scheduling_rule_params[:session_duration_minutes])
 
         created_diary = Diary.last
         expect(created_diary.user_id).to eq(owner.id)

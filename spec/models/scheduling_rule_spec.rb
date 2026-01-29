@@ -18,6 +18,7 @@ RSpec.describe SchedulingRule, type: :model do
         diary: diary,
         start_time: "09:00",
         end_time: "10:00",
+        session_duration_minutes: 60,
         week_days: [ 1, 3, 5 ],
         start_date: Date.current,
         end_date: Date.current + 7.days
@@ -48,6 +49,16 @@ RSpec.describe SchedulingRule, type: :model do
 
     it "is invalid without week_days" do
       expect(build_rule(week_days: nil)).to be_invalid
+    end
+
+    it "is invalid without session_duration_minutes" do
+      expect(build_rule(session_duration_minutes: nil)).to be_invalid
+    end
+
+    it "is invalid when session_duration_minutes is not a multiple of 15" do
+      rule = build_rule(session_duration_minutes: 10)
+      expect(rule).to be_invalid
+      expect(rule.errors[:session_duration_minutes]).to include("must be a multiple of 15 minutes")
     end
 
     it "is invalid when end_date is before start_date" do
