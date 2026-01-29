@@ -57,8 +57,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_29_140100) do
     t.date "date", null: false
     t.text "description", null: false
     t.bigint "diary_id", null: false
-    t.integer "session_duration_minutes", default: 60, null: false
     t.bigint "scheduling_rule_id", null: false
+    t.integer "session_duration_minutes", default: 60, null: false
     t.string "status", default: "pending", null: false
     t.time "time", null: false
     t.datetime "updated_at", null: false
