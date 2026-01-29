@@ -3,7 +3,7 @@ services:
     image: postgres:18-alpine
     environment:
       POSTGRES_USER: sevendays_api
-      POSTGRES_DB: sevendays_api_development
+      POSTGRES_DB: api_sevendays_development
       POSTGRES_PASSWORD: postgres
     ports:
       - 5432:5432
