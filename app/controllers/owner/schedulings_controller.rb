@@ -2,6 +2,14 @@ class Owner::SchedulingsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_diary
 
+  def index
+    return if performed?
+
+    authorize @diary, :schedule?
+    @schedulings = @diary.schedulings.includes(:user).order(date: :asc, time: :asc)
+    render :index, status: :ok
+  end
+
   def create
     return if performed?
 
