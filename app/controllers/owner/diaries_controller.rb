@@ -47,7 +47,7 @@ class Owner::DiariesController < ApplicationController
     return if @diary
 
     render_error(code: "not_found", message: "Diary not found", status: :not_found, details: nil)
-    return
+    nil
   end
 
   def diary_params
