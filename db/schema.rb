@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_29_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_29_140100) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -39,7 +39,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_29_120000) do
     t.bigint "diary_id", null: false
     t.date "end_date"
     t.time "end_time", null: false
+    t.datetime "session_duration_effective_at"
     t.integer "session_duration_minutes", default: 60, null: false
+    t.integer "session_duration_minutes_next"
     t.date "start_date"
     t.time "start_time", null: false
     t.datetime "updated_at", null: false
@@ -55,6 +57,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_29_120000) do
     t.date "date", null: false
     t.text "description", null: false
     t.bigint "diary_id", null: false
+    t.integer "session_duration_minutes", default: 60, null: false
     t.bigint "scheduling_rule_id", null: false
     t.string "status", default: "pending", null: false
     t.time "time", null: false

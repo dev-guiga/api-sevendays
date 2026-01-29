@@ -16,19 +16,21 @@ class CreateOwnerSchedulingService
 
     now = Time.current
 
-    scheduling = diary.schedulings.new(
-      user: user,
-      scheduling_rule: scheduling_rule,
-      date: params[:date],
-      time: params[:time],
-      description: "scheduling created by owner",
-      created_at: now,
-      updated_at: now
-    )
+    diary.with_lock do
+      scheduling = diary.schedulings.new(
+        user: user,
+        scheduling_rule: scheduling_rule,
+        date: params[:date],
+        time: params[:time],
+        description: "scheduling created by owner",
+        created_at: now,
+        updated_at: now
+      )
 
-    if scheduling.save
-      Result.new(true, scheduling, user, nil, nil)
-    else
+      if scheduling.save
+        return Result.new(true, scheduling, user, nil, nil)
+      end
+
       Result.new(false, scheduling, user, scheduling.errors, :unprocessable_entity)
     end
   end

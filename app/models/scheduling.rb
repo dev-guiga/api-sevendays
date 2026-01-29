@@ -8,10 +8,13 @@ class Scheduling < ApplicationRecord
   validates :user_id, presence: true
   validates :date, presence: true
   validates :time, presence: true
+  validates :session_duration_minutes, presence: true, numericality: { only_integer: true, greater_than: 0 }
   validates :description, presence: true, length: { minimum: 10, maximum: 1000 }
   validates :status, presence: true, inclusion: { in: %w[pending completed cancelled] }
   validates :created_at, presence: true
   validates :updated_at, presence: true
+
+  before_validation :sync_duration_from_rule, on: :create
 
   validate :time_at_least_next_hour
   validate :matches_scheduling_rule
@@ -21,13 +24,13 @@ class Scheduling < ApplicationRecord
     def scheduled_at
       return if date.blank? || time.blank?
 
-      Time.zone.local(date.year, date.month, date.day, time.hour, time.min, time.sec)
+      time_on_date(time)
     end
 
     def scheduled_end_at
-      return if scheduled_at.blank? || scheduling_rule&.session_duration_minutes.blank?
+      return if scheduled_at.blank? || session_duration_minutes.blank?
 
-      scheduled_at + scheduling_rule.session_duration_minutes.minutes
+      scheduled_at + duration_in_seconds
     end
 
     def time_at_least_next_hour
@@ -41,7 +44,7 @@ class Scheduling < ApplicationRecord
     end
 
     def minimum_lead_minutes
-      duration = scheduling_rule&.session_duration_minutes
+      duration = session_duration_minutes || scheduling_rule&.effective_duration_minutes
       return 60 if duration.blank?
 
       duration.between?(15, 45) ? 30 : 60
@@ -62,12 +65,12 @@ class Scheduling < ApplicationRecord
         errors.add(:date, "is not allowed by scheduling rule")
       end
 
-      return unless scheduling_rule.start_time && scheduling_rule.end_time && scheduling_rule.session_duration_minutes.present?
+      return unless scheduling_rule.start_time && scheduling_rule.end_time && session_duration_minutes.present?
 
       start_seconds = scheduling_rule.start_time.seconds_since_midnight
       end_seconds = scheduling_rule.end_time.seconds_since_midnight
       time_seconds = time.seconds_since_midnight
-      duration_seconds = scheduling_rule.session_duration_minutes.minutes
+      duration_seconds = duration_in_seconds
 
       if time_seconds < start_seconds || time_seconds + duration_seconds > end_seconds
         errors.add(:time, "is outside scheduling rule range")
@@ -82,7 +85,7 @@ class Scheduling < ApplicationRecord
 
     def does_not_overlap_existing
       return if diary.blank? || date.blank? || time.blank?
-      return if scheduling_rule.blank? || scheduling_rule.session_duration_minutes.blank?
+      return if session_duration_minutes.blank?
 
       start_at = scheduled_at
       end_at = scheduled_end_at
@@ -93,16 +96,30 @@ class Scheduling < ApplicationRecord
 
       scope.find_each do |other|
         next if other.time.blank?
-        other_rule = other.scheduling_rule
-        next if other_rule.blank? || other_rule.session_duration_minutes.blank?
+        next if other.status == "cancelled"
+        next if other.session_duration_minutes.blank?
 
-        other_start = Time.zone.local(date.year, date.month, date.day, other.time.hour, other.time.min, other.time.sec)
-        other_end = other_start + other_rule.session_duration_minutes.minutes
+        other_start = time_on_date(other.time)
+        other_end = other_start + other.session_duration_minutes.minutes
 
         if start_at < other_end && end_at > other_start
           errors.add(:time, "overlaps existing scheduling")
           break
         end
       end
+    end
+
+    def sync_duration_from_rule
+      return if session_duration_minutes.present? || scheduling_rule.blank?
+
+      self.session_duration_minutes = scheduling_rule.effective_duration_minutes
+    end
+
+    def time_on_date(clock_time)
+      Time.zone.local(date.year, date.month, date.day, clock_time.hour, clock_time.min, clock_time.sec)
+    end
+
+    def duration_in_seconds
+      session_duration_minutes.minutes
     end
 end

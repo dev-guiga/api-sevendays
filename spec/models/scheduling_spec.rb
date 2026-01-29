@@ -198,5 +198,46 @@ RSpec.describe Scheduling, type: :model do
 
       expect(adjacent).to be_valid
     end
+
+    it "is valid when overlapping a cancelled scheduling" do
+      user = create_user!
+      diary = create_diary!(user: user)
+      date = Date.current + 3.days
+      rule = create_scheduling_rule!(
+        user: user,
+        diary: diary,
+        overrides: {
+          start_time: "09:00",
+          end_time: "12:00",
+          session_duration_minutes: 60,
+          start_date: date,
+          end_date: date,
+          week_days: [ date.wday ]
+        }
+      )
+
+      Scheduling.create!(
+        scheduling_attributes(
+          user: user,
+          diary: diary,
+          rule: rule,
+          overrides: {
+            date: date,
+            time: "10:00",
+            status: "cancelled"
+          }
+        )
+      )
+
+      overlapping = build_scheduling(
+        user: user,
+        diary: diary,
+        scheduling_rule: rule,
+        date: date,
+        time: "10:00"
+      )
+
+      expect(overlapping).to be_valid
+    end
   end
 end

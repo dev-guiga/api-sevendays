@@ -1,6 +1,8 @@
 require 'rails_helper'
 
 RSpec.describe SchedulingRule, type: :model do
+  include ActiveSupport::Testing::TimeHelpers
+
   def build_rule(overrides = {})
     user = overrides.key?(:user) ? overrides.delete(:user) : create_user!
     diary =
@@ -65,6 +67,40 @@ RSpec.describe SchedulingRule, type: :model do
       rule = build_rule(start_date: Date.current, end_date: Date.yesterday)
       expect(rule).to be_invalid
       expect(rule.errors[:end_date]).to include("must be equal or after start_date")
+    end
+
+    it "is invalid when end_time is not after start_time" do
+      rule = build_rule(start_time: "10:00", end_time: "10:00")
+      expect(rule).to be_invalid
+      expect(rule.errors[:end_time]).to include("must be after start_time")
+    end
+
+    it "schedules a duration change to take effect after 1 day" do
+      travel_to(Time.zone.local(2026, 1, 1, 10, 0, 0)) do
+        owner = create_user!
+        rule = create_scheduling_rule!(
+          user: owner,
+          diary: create_diary!(user: owner),
+          overrides: { session_duration_minutes: 60 }
+        )
+
+        rule.update!(session_duration_minutes: 30)
+
+        expect(rule.session_duration_minutes).to eq(60)
+        expect(rule.session_duration_minutes_next).to eq(30)
+        expect(rule.session_duration_effective_at).to eq(Time.current + 1.day)
+      end
+    end
+
+    it "returns next duration after effective time" do
+      now = Time.current
+      rule = build_rule(
+        session_duration_minutes: 60,
+        session_duration_minutes_next: 30,
+        session_duration_effective_at: now - 1.minute
+      )
+
+      expect(rule.effective_duration_minutes(at: now)).to eq(30)
     end
   end
 end

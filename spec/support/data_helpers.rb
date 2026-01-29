@@ -124,9 +124,18 @@ module DataHelpers
   end
 
   def next_slot_for(rule, from_time:)
-    return from_time.beginning_of_hour unless rule&.start_time && rule&.end_time && rule&.session_duration_minutes
+    return from_time.beginning_of_hour unless rule&.start_time && rule&.end_time
 
-    duration_seconds = rule.session_duration_minutes.minutes
+    duration_minutes =
+      if rule.respond_to?(:effective_duration_minutes)
+        rule.effective_duration_minutes
+      else
+        rule.session_duration_minutes
+      end
+
+    return from_time.beginning_of_hour if duration_minutes.blank?
+
+    duration_seconds = duration_minutes.minutes
     date = from_time.to_date
     start_seconds = rule.start_time.seconds_since_midnight
     end_seconds = rule.end_time.seconds_since_midnight

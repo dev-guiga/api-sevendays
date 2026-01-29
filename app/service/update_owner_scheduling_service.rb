@@ -23,9 +23,11 @@ class UpdateOwnerSchedulingService
       return error_result("Scheduling cannot be edited within #{lead_minutes_for(scheduling)} minutes", :unprocessable_entity)
     end
 
-    if scheduling.update(date: params[:date], time: params[:time])
-      Result.new(true, scheduling, user, nil, nil)
-    else
+    diary.with_lock do
+      if scheduling.update(date: params[:date], time: params[:time])
+        return Result.new(true, scheduling, user, nil, nil)
+      end
+
       Result.new(false, scheduling, user, scheduling.errors, :unprocessable_entity)
     end
   end
@@ -49,7 +51,7 @@ class UpdateOwnerSchedulingService
   end
 
   def lead_minutes_for(scheduling)
-    duration = scheduling.scheduling_rule&.session_duration_minutes
+    duration = scheduling.session_duration_minutes || scheduling.scheduling_rule&.effective_duration_minutes
     return 60 if duration.blank?
 
     duration.between?(15, 45) ? 30 : 60
