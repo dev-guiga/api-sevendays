@@ -79,8 +79,8 @@ RSpec.describe Owner::DiariesController, type: :controller do
         post :create, params: { diary: diary_params.merge(title: nil), scheduling_rules: scheduling_rule_params }, format: :json
 
         expect(response).to have_http_status(:unprocessable_entity)
-        body = response.parsed_body
-        expect(body["diary"]).to include("title")
+        details = response.parsed_body.dig("error", "details", "diary")
+        expect(details).to include("title")
       end
     end
   end
@@ -136,8 +136,8 @@ RSpec.describe Owner::DiariesController, type: :controller do
         patch :update, params: { id: diary.id, diary: { title: nil } }, format: :json
 
         expect(response).to have_http_status(:unprocessable_entity)
-        body = response.parsed_body
-        expect(body["diary"]).to include("title")
+        details = response.parsed_body.dig("error", "details", "diary")
+        expect(details).to include("title")
       end
     end
   end

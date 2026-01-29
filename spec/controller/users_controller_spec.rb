@@ -85,8 +85,8 @@ RSpec.describe UsersController, type: :controller do
 
       it "returns 422 with validation errors" do
         expect(response).to have_http_status(:unprocessable_entity)
-        body = response.parsed_body
-        expect(body).to include("first_name", "email", "username")
+        details = response.parsed_body.dig("error", "details")
+        expect(details).to include("first_name", "email", "username")
       end
     end
 
@@ -98,7 +98,7 @@ RSpec.describe UsersController, type: :controller do
           post :create, params: { user: user_params(username: "duplicate") }, format: :json
         }.not_to change(User, :count)
         expect(response).to have_http_status(:unprocessable_entity)
-        expect(response.parsed_body["username"]).to include("has already been taken")
+        expect(response.parsed_body.dig("error", "details", "username")).to include("has already been taken")
       end
     end
 
@@ -111,7 +111,7 @@ RSpec.describe UsersController, type: :controller do
           post :create, params: { user: user_params(email: email) }, format: :json
         }.not_to change(User, :count)
         expect(response).to have_http_status(:unprocessable_entity)
-        expect(response.parsed_body["email"]).to include("has already been taken")
+        expect(response.parsed_body.dig("error", "details", "email")).to include("has already been taken")
       end
     end
 
@@ -124,7 +124,7 @@ RSpec.describe UsersController, type: :controller do
           post :create, params: { user: user_params(cpf: cpf) }, format: :json
         }.not_to change(User, :count)
         expect(response).to have_http_status(:unprocessable_entity)
-        expect(response.parsed_body["cpf"]).to include("has already been taken")
+        expect(response.parsed_body.dig("error", "details", "cpf")).to include("has already been taken")
       end
     end
   end
@@ -145,6 +145,7 @@ RSpec.describe UsersController, type: :controller do
       it "returns unauthorized" do
         perform_request
         expect(response).to have_http_status(:unauthorized)
+        expect(response.parsed_body.dig("error", "code")).to eq("unauthorized")
       end
     end
   end

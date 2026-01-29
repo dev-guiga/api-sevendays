@@ -16,7 +16,7 @@ class Owner::DiariesController < ApplicationController
       @scheduling_rule = result.scheduling_rule
       render :create, status: :created
     else
-      render json: { diary: result.diary.errors, scheduling_rule: result.scheduling_rule.errors }, status: :unprocessable_entity
+      render_validation_error(details: { diary: result.diary.errors, scheduling_rule: result.scheduling_rule.errors })
     end
   end
 
@@ -26,7 +26,7 @@ class Owner::DiariesController < ApplicationController
     if @diary.update(diary_params)
       render :update, status: :ok
     else
-      render json: { diary: @diary.errors }, status: :unprocessable_entity
+      render_validation_error(details: { diary: @diary.errors })
     end
   end
 
@@ -44,9 +44,9 @@ class Owner::DiariesController < ApplicationController
       current_user&.diary
     end
 
-    unless @diary
-      render json: { error: "Diary not found" }, status: :not_found
-    end
+    return if @diary
+
+    render_error(code: "not_found", message: "Diary not found", status: :not_found, details: nil)
   end
 
   def diary_params

@@ -1,6 +1,7 @@
 module Devise
   class SessionsController < DeviseController
     respond_to :json
+    include ErrorRenderer
 
     prepend_before_action :require_no_authentication, only: :create
     prepend_before_action :allow_params_authentication!, only: :create
@@ -12,7 +13,12 @@ module Devise
         sign_in(resource_name, resource)
         render json: { message: "Signed in successfully" }, status: :ok
       else
-        render json: { message: "Invalid email or password" }, status: :unauthorized
+        render_error(
+          code: "unauthorized",
+          message: "Invalid email or password",
+          status: :unauthorized,
+          details: nil
+        )
       end
     end
 

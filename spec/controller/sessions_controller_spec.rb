@@ -44,7 +44,9 @@ RSpec.describe Devise::SessionsController, type: :controller do
         perform_request
 
         expect(response).to have_http_status(:unauthorized)
-        expect(response.parsed_body["message"]).to eq("Invalid email or password")
+        error = response.parsed_body["error"]
+        expect(error["code"]).to eq("unauthorized")
+        expect(error["message"]).to eq("Invalid email or password")
       end
     end
 
@@ -55,7 +57,9 @@ RSpec.describe Devise::SessionsController, type: :controller do
         perform_request
 
         expect(response).to have_http_status(:unauthorized)
-        expect(response.parsed_body["message"]).to eq("Invalid email or password")
+        error = response.parsed_body["error"]
+        expect(error["code"]).to eq("unauthorized")
+        expect(error["message"]).to eq("Invalid email or password")
       end
     end
   end

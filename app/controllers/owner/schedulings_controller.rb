@@ -16,9 +16,9 @@ class Owner::SchedulingsController < ApplicationController
       render :create, status: :created
 
     elsif result.error.is_a?(String)
-      render json: { error: result.error }, status: result.status
+      render_error(code: result.status.to_s, message: result.error, status: result.status, details: nil)
     else
-      render json: { errors: result.error }, status: result.status
+      render_validation_error(details: result.error)
     end
   end
 
@@ -38,9 +38,9 @@ class Owner::SchedulingsController < ApplicationController
       @user = result.user
       render :update, status: :ok
     elsif result.error.is_a?(String)
-      render json: { error: result.error }, status: result.status
+      render_error(code: result.status.to_s, message: result.error, status: result.status, details: nil)
     else
-      render json: { errors: result.error }, status: result.status
+      render_validation_error(details: result.error)
     end
   end
 
@@ -53,6 +53,6 @@ class Owner::SchedulingsController < ApplicationController
     @diary = current_user&.diary
     return if @diary
 
-    render json: { error: "Diary not found" }, status: :not_found
+    render_error(code: "not_found", message: "Diary not found", status: :not_found, details: nil)
   end
 end

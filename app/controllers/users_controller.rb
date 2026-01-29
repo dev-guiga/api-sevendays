@@ -10,7 +10,7 @@ class UsersController < ApplicationController
     if @user.save
       render :create, status: :created
     else
-      render json: @user.errors, status: :unprocessable_entity
+      render_validation_error(details: @user.errors)
     end
   end
 
