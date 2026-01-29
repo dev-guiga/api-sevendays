@@ -2,12 +2,16 @@ require "rails_helper"
 
 RSpec.describe Owner::SchedulingsController, type: :controller do
   render_views
+  include ActiveSupport::Testing::TimeHelpers
 
   let(:owner) { create_user!(status: "owner") }
   let(:user) { create_user!(status: "user", email: "guilherme@example.com") }
   let(:diary) { create_diary!(user: owner) }
   let(:scheduling_rule) { create_scheduling_rule!(user: owner, diary: diary) }
-  let(:scheduled_at) { (Time.current + 1.hour).beginning_of_hour }
+  let(:scheduled_at) do
+    date = Date.current + 1.day
+    Time.zone.local(date.year, date.month, date.day, 10, 0, 0)
+  end
   let(:scheduling_params) {
     {
       scheduling: {
@@ -54,8 +58,21 @@ RSpec.describe Owner::SchedulingsController, type: :controller do
       end
     end
 
-    context "when time is before the next hour" do
-      let(:too_soon_at) { Time.current.beginning_of_hour }
+    context "when time is within lead time for short sessions" do
+      let(:scheduling_rule) {
+        create_scheduling_rule!(
+          user: owner,
+          diary: diary,
+          overrides: {
+            session_duration_minutes: 30
+          }
+        )
+      }
+      let(:too_soon_at) { Time.current.beginning_of_hour + 30.minutes }
+
+      around do |example|
+        travel_to(Time.zone.local(2026, 1, 1, 10, 10, 0)) { example.run }
+      end
 
       before do
         session[:user_id] = owner.id
@@ -166,7 +183,10 @@ RSpec.describe Owner::SchedulingsController, type: :controller do
   end
 
   describe "#update" do
-    let(:new_scheduled_at) { (Time.current + 2.hours).beginning_of_hour }
+    let(:new_scheduled_at) do
+      date = Date.current + 1.day
+      Time.zone.local(date.year, date.month, date.day, 11, 0, 0)
+    end
     let!(:scheduling) {
       Scheduling.create!(
         scheduling_attributes(
@@ -212,13 +232,28 @@ RSpec.describe Owner::SchedulingsController, type: :controller do
       end
     end
 
-    context "when editing within the next hour" do
+    context "when editing within lead time for short sessions" do
+      let(:scheduling_rule) {
+        create_scheduling_rule!(
+          user: owner,
+          diary: diary,
+          overrides: {
+            session_duration_minutes: 30
+          }
+        )
+      }
+
+      around do |example|
+        travel_to(Time.zone.local(2026, 1, 1, 10, 10, 0)) { example.run }
+      end
+
       before do
         session[:user_id] = owner.id
         scheduling_rule
+        too_soon_at = Time.current.beginning_of_hour + 30.minutes
         scheduling.update_columns(
-          date: Date.current,
-          time: Time.current.beginning_of_hour + 30.minutes
+          date: too_soon_at.to_date,
+          time: too_soon_at
         )
       end
 

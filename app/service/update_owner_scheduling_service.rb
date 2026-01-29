@@ -20,7 +20,7 @@ class UpdateOwnerSchedulingService
     end
 
     if too_soon_to_edit?(scheduling)
-      return error_result("Scheduling cannot be edited within 1 hour", :unprocessable_entity)
+      return error_result("Scheduling cannot be edited within #{lead_minutes_for(scheduling)} minutes", :unprocessable_entity)
     end
 
     if scheduling.update(date: params[:date], time: params[:time])
@@ -45,7 +45,14 @@ class UpdateOwnerSchedulingService
       scheduling.time.sec
     )
 
-    scheduled_at < (Time.current + 1.hour).beginning_of_hour
+    scheduled_at < (Time.current + lead_minutes_for(scheduling).minutes).beginning_of_minute
+  end
+
+  def lead_minutes_for(scheduling)
+    duration = scheduling.scheduling_rule&.session_duration_minutes
+    return 60 if duration.blank?
+
+    duration.between?(15, 45) ? 30 : 60
   end
 
   def error_result(message, status)

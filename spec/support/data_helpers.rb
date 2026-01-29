@@ -59,7 +59,7 @@ module DataHelpers
   end
 
   def scheduling_attributes(user: create_user!, diary: create_diary!(user: user), rule: create_scheduling_rule!(user: user, diary: diary), overrides: {})
-    scheduled_at = (Time.current + 1.hour).beginning_of_hour
+    scheduled_at = next_slot_for(rule, from_time: Time.current + 1.hour)
     {
       user: user,
       diary: diary,
@@ -121,5 +121,30 @@ module DataHelpers
     diary = overrides.delete(:diary) || create_diary!(user: user)
     rule = overrides.delete(:scheduling_rule) || create_scheduling_rule!(user: user, diary: diary)
     { user: user, diary: diary, rule: rule, overrides: overrides }
+  end
+
+  def next_slot_for(rule, from_time:)
+    return from_time.beginning_of_hour unless rule&.start_time && rule&.end_time && rule&.session_duration_minutes
+
+    duration_seconds = rule.session_duration_minutes.minutes
+    date = from_time.to_date
+    start_seconds = rule.start_time.seconds_since_midnight
+    end_seconds = rule.end_time.seconds_since_midnight
+    time_seconds = from_time.seconds_since_midnight
+
+    if time_seconds < start_seconds
+      slot_seconds = start_seconds
+    else
+      offset_seconds = time_seconds - start_seconds
+      slots = (offset_seconds.to_f / duration_seconds).ceil
+      slot_seconds = start_seconds + (slots * duration_seconds)
+    end
+
+    if slot_seconds + duration_seconds > end_seconds
+      date += 1.day
+      slot_seconds = start_seconds
+    end
+
+    Time.zone.local(date.year, date.month, date.day) + slot_seconds
   end
 end
