@@ -16,9 +16,7 @@ RSpec.describe Scheduling, type: :model do
         date: scheduled_at.to_date,
         time: scheduled_at.strftime("%H:%M"),
         description: Faker::Lorem.characters(number: 20),
-        status: "pending",
-        created_at: Time.current,
-        updated_at: Time.current
+        status: :pending
       }.merge(overrides)
     )
   end
@@ -57,7 +55,9 @@ RSpec.describe Scheduling, type: :model do
     end
 
     it "is invalid with an unsupported status" do
-      expect(build_scheduling(status: "invalid")).to be_invalid
+      scheduling = build_scheduling
+
+      expect { scheduling.status = "invalid" }.to raise_error(ArgumentError, /'invalid' is not a valid status/)
     end
 
     it "is invalid when time does not align with session duration" do

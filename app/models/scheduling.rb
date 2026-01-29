@@ -10,9 +10,9 @@ class Scheduling < ApplicationRecord
   validates :time, presence: true
   validates :session_duration_minutes, presence: true, numericality: { only_integer: true, greater_than: 0 }
   validates :description, presence: true, length: { minimum: 10, maximum: 1000 }
-  validates :status, presence: true, inclusion: { in: %w[pending completed cancelled] }
-  validates :created_at, presence: true
-  validates :updated_at, presence: true
+  validates :status, presence: true
+
+  enum :status, { pending: "pending", completed: "completed", cancelled: "cancelled" }
 
   before_validation :sync_duration_from_rule, on: :create
 
@@ -53,34 +53,10 @@ class Scheduling < ApplicationRecord
     def matches_scheduling_rule
       return if scheduling_rule.blank? || date.blank? || time.blank?
 
-      if scheduling_rule.start_date && date < scheduling_rule.start_date
-        errors.add(:date, "is before scheduling rule start_date")
-      end
-
-      if scheduling_rule.end_date && date > scheduling_rule.end_date
-        errors.add(:date, "is after scheduling rule end_date")
-      end
-
-      if scheduling_rule.week_days.present? && !scheduling_rule.week_days.include?(date.wday)
-        errors.add(:date, "is not allowed by scheduling rule")
-      end
-
-      return unless scheduling_rule.start_time && scheduling_rule.end_time && session_duration_minutes.present?
-
-      start_seconds = scheduling_rule.start_time.seconds_since_midnight
-      end_seconds = scheduling_rule.end_time.seconds_since_midnight
-      time_seconds = time.seconds_since_midnight
-      duration_seconds = duration_in_seconds
-
-      if time_seconds < start_seconds || time_seconds + duration_seconds > end_seconds
-        errors.add(:time, "is outside scheduling rule range")
-        return
-      end
-
-      offset_seconds = time_seconds - start_seconds
-      if duration_seconds > 0 && (offset_seconds % duration_seconds).nonzero?
-        errors.add(:time, "does not align with scheduling rule duration")
-      end
+      validate_date_within_rule
+      validate_week_day
+      validate_time_within_rule
+      validate_time_alignment
     end
 
     def does_not_overlap_existing
@@ -95,17 +71,10 @@ class Scheduling < ApplicationRecord
       scope = scope.where.not(id: id) if persisted?
 
       scope.find_each do |other|
-        next if other.time.blank?
-        next if other.status == "cancelled"
-        next if other.session_duration_minutes.blank?
+        next unless overlaps_with?(other, start_at, end_at)
 
-        other_start = time_on_date(other.time)
-        other_end = other_start + other.session_duration_minutes.minutes
-
-        if start_at < other_end && end_at > other_start
-          errors.add(:time, "overlaps existing scheduling")
-          break
-        end
+        errors.add(:time, "overlaps existing scheduling")
+        break
       end
     end
 
@@ -121,5 +90,72 @@ class Scheduling < ApplicationRecord
 
     def duration_in_seconds
       session_duration_minutes.minutes
+    end
+
+    def validate_date_within_rule
+      if scheduling_rule.start_date && date < scheduling_rule.start_date
+        errors.add(:date, "is before scheduling rule start_date")
+      end
+
+      if scheduling_rule.end_date && date > scheduling_rule.end_date
+        errors.add(:date, "is after scheduling rule end_date")
+      end
+    end
+
+    def validate_week_day
+      return if scheduling_rule.week_days.blank?
+
+      errors.add(:date, "is not allowed by scheduling rule") unless scheduling_rule.week_days.include?(date.wday)
+    end
+
+    def validate_time_within_rule
+      return if time_within_rule_range?
+
+      start_seconds, end_seconds, time_seconds, duration_seconds = rule_time_data
+      return if start_seconds.blank?
+
+      if time_seconds < start_seconds || time_seconds + duration_seconds > end_seconds
+        errors.add(:time, "is outside scheduling rule range")
+      end
+    end
+
+    def validate_time_alignment
+      return unless time_within_rule_range?
+
+      start_seconds, _end_seconds, time_seconds, duration_seconds = rule_time_data
+      return if start_seconds.blank?
+      return if duration_seconds <= 0
+
+      offset_seconds = time_seconds - start_seconds
+      errors.add(:time, "does not align with scheduling rule duration") if (offset_seconds % duration_seconds).nonzero?
+    end
+
+    def rule_time_data
+      return if scheduling_rule.start_time.blank? || scheduling_rule.end_time.blank? || session_duration_minutes.blank?
+
+      [
+        scheduling_rule.start_time.seconds_since_midnight,
+        scheduling_rule.end_time.seconds_since_midnight,
+        time.seconds_since_midnight,
+        duration_in_seconds
+      ]
+    end
+
+    def time_within_rule_range?
+      start_seconds, end_seconds, time_seconds, duration_seconds = rule_time_data
+      return true if start_seconds.blank?
+
+      time_seconds >= start_seconds && (time_seconds + duration_seconds) <= end_seconds
+    end
+
+    def overlaps_with?(other, start_at, end_at)
+      return false if other.time.blank?
+      return false if other.cancelled?
+      return false if other.session_duration_minutes.blank?
+
+      other_start = time_on_date(other.time)
+      other_end = other_start + other.session_duration_minutes.minutes
+
+      start_at < other_end && end_at > other_start
     end
 end
