@@ -7,9 +7,9 @@ module Devise
     prepend_before_action :allow_params_authentication!, only: :create
 
     def create
-      self.resource = warden.authenticate(auth_options)
+      self.resource = User.find_for_database_authentication(email: params_user[:email])
 
-      if resource
+      if resource&.valid_password?(params_user[:password])
         sign_in(resource_name, resource)
         render json: { message: "Signed in successfully" }, status: :ok
       else
@@ -28,6 +28,10 @@ module Devise
     end
 
     protected
+
+    def params_user
+      params.require(:user).permit(:email, :password)
+    end
 
     def auth_options
       { scope: resource_name, recall: "#{controller_path}#create", locale: I18n.locale }
