@@ -2,20 +2,26 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
 
   scope path: "api" do
-    post "sign_up", to: "users#create", as: "sign_up"
-    get "me", to: "users#me", as: "me"
+    resources :users, only: [ :create ]
+    resource :user, only: [ :show ]
 
-    devise_for :users, controllers: {
+    devise_for :users, skip: [ :registrations ], controllers: {
       passwords: "devise/passwords",
       sessions: "devise/sessions"
     }
 
     namespace :owner do
-      resource :diary, only: [ :show ], controller: "diaries" do
-        post "schedulings", to: "schedulings#create"
-        patch "schedulings/:id", to: "schedulings#update"
+      resource :diary, only: [ :create, :show, :update ], controller: "diaries" do
+        resources :schedulings, only: [ :index, :create, :update, :destroy ]
+        resource :scheduling_rule, only: [ :update ], controller: "scheduling_rules"
       end
-      resources :diaries, only: [ :create, :update ]
+    end
+
+    resources :diaries, only: [ :index, :show ] do
+      get :days, on: :member
+      resources :schedulings, only: [ :index ] do
+        get :days, on: :member
+      end
     end
   end
 end

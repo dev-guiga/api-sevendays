@@ -8,15 +8,15 @@ default: &default
   adapter: postgresql
   encoding: unicode
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  # Configurações para conectar ao container PostgreSQL
-  username: sevendays_api
-  password: postgres
-  host: localhost # nome do serviço no docker-compose
-  port: 5432
+  # Configurações para conectar ao PostgreSQL (local ou container)
+  username: <%= ENV.fetch("DATABASE_USERNAME", "sevendays_api") %>
+  password: <%= ENV.fetch("DATABASE_PASSWORD", "postgres") %>
+  host: <%= ENV.fetch("DATABASE_HOST", "localhost") %>
+  port: <%= ENV.fetch("DATABASE_PORT", 5432) %>
 
 development:
   <<: *default
-  database: api_sevendays_development
+  database: <%= ENV.fetch("DATABASE_NAME", "api_sevendays_development") %>
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
@@ -24,7 +24,7 @@ development:
 
 test:
   <<: *default
-  database: api_sevendays_test
+  database: <%= ENV.fetch("DATABASE_NAME_TEST", "api_sevendays_test") %>
 
 # Store production database in the storage/ directory, which by default
 # is mounted as a persistent Docker volume in config/deploy.yml.

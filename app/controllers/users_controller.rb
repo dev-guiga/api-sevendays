@@ -1,24 +1,21 @@
 class UsersController < ApplicationController
   # skip_before_action :verify_authenticity_token
-  def create
-    @user = User.new(user_params)
-    requested_status = params.dig(:user, :status)
+  before_action :authenticate_user!, only: :show
 
-    @user.status = (requested_status == "owner" || requested_status == :owner) ? "owner" : "user"
-    if @user.save
+  def create
+    result = CreateUserService.new(user_params).call
+
+    if result.success?
+      @user = result.payload[:user]
       render :create, status: :created
     else
-      render json: @user.errors, status: :unprocessable_entity
+      render_validation_error(details: result.errors)
     end
   end
 
-  def me
-    if logged_in?
-      @user = current_user
-      render :me, status: :ok
-    else
-      render json: { error: "Unauthorized" }, status: :unauthorized
-    end
+  def show
+    @user = current_user
+    render :show, status: :ok
   end
 
   private

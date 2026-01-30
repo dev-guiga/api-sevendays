@@ -1,24 +1,146 @@
-# README
+# API Sevendays
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+API Rails seguindo Rails Way, com foco em consistencia, testes e boas praticas.
 
-Things you may want to cover:
+## Stack
+- Ruby + Rails
+- PostgreSQL
+- Devise (auth)
+- Pundit (autorizacao)
 
-* Ruby version
+## Setup rapido
 
-* System dependencies
+### 1) Variaveis de ambiente (opcional)
+As configs tem defaults para desenvolvimento. Se quiser customizar:
 
-* Configuration
+- `DATABASE_HOST` (default: `localhost`)
+- `DATABASE_PORT` (default: `5432`)
+- `DATABASE_USERNAME` (default: `sevendays_api`)
+- `DATABASE_PASSWORD` (default: `postgres`)
+- `DATABASE_NAME` (default: `api_sevendays_development`)
+- `DATABASE_NAME_TEST` (default: `api_sevendays_test`)
+- `CORS_ORIGINS` (default: `http://localhost:3000,http://127.0.0.1:3000`)
 
-* Database creation
+### 2) Dependencias
+```bash
+bundle install
+```
 
-* Database initialization
+### 3) Banco
+```bash
+bin/rails db:prepare
+```
 
-* How to run the test suite
+### 4) Rodar a API
+```bash
+bin/rails s
+```
 
-* Services (job queues, cache servers, search engines, etc.)
+## Docker (Postgres)
+```bash
+docker-compose up -d
+```
 
-* Deployment instructions
+## Testes
+```bash
+bundle exec rspec
+```
 
-* ...
+## Endpoints principais
+
+### Auth (Devise)
+- `POST /api/users/sign_in`
+- `DELETE /api/users/sign_out`
+- `POST /api/users/password`
+- `PUT /api/users/password`
+
+### Usuarios
+- `POST /api/users` (signup)
+- `GET /api/user` (current user)
+
+### Owner Diary
+- `POST /api/owner/diary`
+- `GET /api/owner/diary`
+- `PATCH /api/owner/diary`
+
+### Owner Schedulings
+- `POST /api/owner/diary/schedulings`
+- `PATCH /api/owner/diary/schedulings/:id`
+
+## Exemplos de requests
+
+### Signup
+```bash
+curl -X POST http://localhost:3000/api/users \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user": {
+      "first_name": "Ana",
+      "last_name": "Silva",
+      "username": "anas",
+      "email": "ana@example.com",
+      "password": "password123",
+      "password_confirmation": "password123",
+      "cpf": "12345678901",
+      "birth_date": "1990-01-01",
+      "status": "owner",
+      "address_attributes": {
+        "address": "Rua A, 123",
+        "city": "Sao Paulo",
+        "state": "SP",
+        "neighborhood": "Centro"
+      }
+    }
+  }'
+```
+
+### Sign in
+```bash
+curl -X POST http://localhost:3000/api/users/sign_in \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user": {
+      "email": "ana@example.com",
+      "password": "password123"
+    }
+  }'
+```
+
+### Current user
+```bash
+curl -X GET http://localhost:3000/api/user \
+  -H "Content-Type: application/json" \
+  --cookie "_api_sevendays_session=SEU_COOKIE"
+```
+
+### Criar diary (owner)
+```bash
+curl -X POST http://localhost:3000/api/owner/diary \
+  -H "Content-Type: application/json" \
+  --cookie "_api_sevendays_session=SEU_COOKIE" \
+  -d '{
+    "diary": {
+      "title": "My Diary",
+      "description": "A long enough description."
+    },
+    "scheduling_rules": {
+      "start_time": "09:00",
+      "end_time": "10:00",
+      "session_duration_minutes": 60,
+      "week_days": [1,3,5],
+      "start_date": "2026-01-29",
+      "end_date": "2026-02-05"
+    }
+  }'
+```
+
+### Erros padronizados
+Todas as respostas de erro seguem:
+```json
+{ "error": { "code": "...", "message": "...", "details": "..." } }
+```
+
+## CI
+- Lint: RuboCop
+- Security: Brakeman + bundler-audit
+- Tests: RSpec

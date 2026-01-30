@@ -11,11 +11,11 @@ RSpec.describe UsersController, type: :controller do
   end
 
   describe "routing" do
-    it "routes POST /api/sign_up to users#create" do
-      expect(post: "/api/sign_up").to route_to("users#create")
+    it "routes POST /api/users to users#create" do
+      expect(post: "/api/users").to route_to("users#create")
     end
-    it "routes GET /api/me to users#me" do
-      expect(get: "/api/me").to route_to("users#me")
+    it "routes GET /api/user to users#show" do
+      expect(get: "/api/user").to route_to("users#show")
     end
   end
 
@@ -85,8 +85,8 @@ RSpec.describe UsersController, type: :controller do
 
       it "returns 422 with validation errors" do
         expect(response).to have_http_status(:unprocessable_entity)
-        body = response.parsed_body
-        expect(body).to include("first_name", "email", "username")
+        details = response.parsed_body.dig("error", "details")
+        expect(details).to include("first_name", "email", "username")
       end
     end
 
@@ -98,7 +98,7 @@ RSpec.describe UsersController, type: :controller do
           post :create, params: { user: user_params(username: "duplicate") }, format: :json
         }.not_to change(User, :count)
         expect(response).to have_http_status(:unprocessable_entity)
-        expect(response.parsed_body["username"]).to include("has already been taken")
+        expect(response.parsed_body.dig("error", "details", "username")).to include("has already been taken")
       end
     end
 
@@ -111,7 +111,7 @@ RSpec.describe UsersController, type: :controller do
           post :create, params: { user: user_params(email: email) }, format: :json
         }.not_to change(User, :count)
         expect(response).to have_http_status(:unprocessable_entity)
-        expect(response.parsed_body["email"]).to include("has already been taken")
+        expect(response.parsed_body.dig("error", "details", "email")).to include("has already been taken")
       end
     end
 
@@ -124,27 +124,28 @@ RSpec.describe UsersController, type: :controller do
           post :create, params: { user: user_params(cpf: cpf) }, format: :json
         }.not_to change(User, :count)
         expect(response).to have_http_status(:unprocessable_entity)
-        expect(response.parsed_body["cpf"]).to include("has already been taken")
+        expect(response.parsed_body.dig("error", "details", "cpf")).to include("has already been taken")
       end
     end
   end
 
-  describe "#me" do
-    context "when success" do
-      before do
-        session[:user_id] = user.id
-      end
+  describe "#show" do
+    subject(:perform_request) { get :show, format: :json }
+
+    context "when authenticated" do
+      before { sign_in(user) }
 
       it "returns the current user" do
-        get :me, params: { user_id: :user_id }, format: :json
+        perform_request
         expect(response).to have_http_status(:ok)
       end
     end
 
-    context "when unauthorized" do
+    context "when unauthenticated" do
       it "returns unauthorized" do
-        get :me, format: :json
+        perform_request
         expect(response).to have_http_status(:unauthorized)
+        expect(response.parsed_body.dig("error", "code")).to eq("unauthorized")
       end
     end
   end

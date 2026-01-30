@@ -47,6 +47,7 @@ module DataHelpers
       diary: diary,
       start_time: "00:00",
       end_time: "23:59",
+      session_duration_minutes: 60,
       week_days: (0..6).to_a,
       start_date: Date.current - 1.day,
       end_date: Date.current + 30.days
@@ -58,7 +59,7 @@ module DataHelpers
   end
 
   def scheduling_attributes(user: create_user!, diary: create_diary!(user: user), rule: create_scheduling_rule!(user: user, diary: diary), overrides: {})
-    scheduled_at = (Time.current + 1.hour).beginning_of_hour
+    scheduled_at = next_slot_for(rule, from_time: Time.current + 1.hour)
     {
       user: user,
       diary: diary,
@@ -66,7 +67,7 @@ module DataHelpers
       date: scheduled_at.to_date,
       time: scheduled_at.strftime("%H:%M"),
       description: Faker::Lorem.characters(number: 30),
-      status: "pending",
+      status: "available",
       created_at: Time.current,
       updated_at: Time.current
     }.merge(overrides)
@@ -120,5 +121,39 @@ module DataHelpers
     diary = overrides.delete(:diary) || create_diary!(user: user)
     rule = overrides.delete(:scheduling_rule) || create_scheduling_rule!(user: user, diary: diary)
     { user: user, diary: diary, rule: rule, overrides: overrides }
+  end
+
+  def next_slot_for(rule, from_time:)
+    return from_time.beginning_of_hour unless rule&.start_time && rule&.end_time
+
+    duration_minutes =
+      if rule.respond_to?(:effective_duration_minutes)
+        rule.effective_duration_minutes
+      else
+        rule.session_duration_minutes
+      end
+
+    return from_time.beginning_of_hour if duration_minutes.blank?
+
+    duration_seconds = duration_minutes.minutes
+    date = from_time.to_date
+    start_seconds = rule.start_time.seconds_since_midnight
+    end_seconds = rule.end_time.seconds_since_midnight
+    time_seconds = from_time.seconds_since_midnight
+
+    if time_seconds < start_seconds
+      slot_seconds = start_seconds
+    else
+      offset_seconds = time_seconds - start_seconds
+      slots = (offset_seconds.to_f / duration_seconds).ceil
+      slot_seconds = start_seconds + (slots * duration_seconds)
+    end
+
+    if slot_seconds + duration_seconds > end_seconds
+      date += 1.day
+      slot_seconds = start_seconds
+    end
+
+    Time.zone.local(date.year, date.month, date.day) + slot_seconds
   end
 end
