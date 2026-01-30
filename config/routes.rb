@@ -16,5 +16,7 @@ Rails.application.routes.draw do
         resource :scheduling_rule, only: [ :update ], controller: "scheduling_rules"
       end
     end
+
+    resources :diaries, only: [ :index ]
   end
 end
