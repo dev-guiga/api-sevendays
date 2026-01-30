@@ -12,13 +12,22 @@ class Scheduling < ApplicationRecord
   validates :description, presence: true, length: { minimum: 10, maximum: 1000 }
   validates :status, presence: true
 
-  enum :status, { pending: "pending", completed: "completed", cancelled: "cancelled" }
+  enum :status, { available: "available", marked: "marked", cancelled: "cancelled" }
 
   before_validation :sync_duration_from_rule, on: :create
 
   validate :time_at_least_next_hour
   validate :matches_scheduling_rule
   validate :does_not_overlap_existing
+
+  scope :in_current_month, ->(date) {
+    range = date.beginning_of_month..date.end_of_month
+    where(date: range)
+  }
+
+  scope :between_dates_and_times, ->(date, start_time, end_time) {
+    where(date: date).where(time: start_time..end_time)
+  }
 
   private
     def scheduled_at

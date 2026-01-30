@@ -1,10 +1,46 @@
 class DiariesController < ApplicationController
   before_action :authenticate_user!
-
+  before_action :set_diary, only: [ :show, :days ]
   def index
     return if performed?
 
     @diaries = Diary.all
     render :index, status: :ok
+  end
+
+  def show
+    return if performed?
+
+    @schedulings = @diary.schedulings.includes(:user).in_current_month(month_date)
+    render :show, status: :ok
+  rescue ArgumentError
+    render_error(code: "invalid_date_format", message: "Invalid date format", status: :unprocessable_entity)
+  end
+
+  def days
+    return if performed?
+
+    day = params[:date].present? ? Date.strptime(params[:date], "%Y-%m-%d") : Date.current
+
+    @schedulings = @diary.schedulings
+    .includes(:user)
+    .between_dates_and_times(day, @diary.scheduling_rule.start_time, @diary.scheduling_rule.end_time)
+
+    render :days, status: :ok
+  rescue ArgumentError
+    render_error(code: "invalid_date", message: "Invalid date", status: :unprocessable_entity)
+  end
+
+  private
+  def set_diary
+    @diary = Diary.find(params[:id])
+  end
+
+  def params_month_date
+    params[:month].to_i || Date.current.month
+  end
+
+  def date_from_month
+    Date.new(Time.zone.today.year, params_month_date, 1)
   end
 end

@@ -16,7 +16,7 @@ RSpec.describe Scheduling, type: :model do
         date: scheduled_at.to_date,
         time: scheduled_at.strftime("%H:%M"),
         description: Faker::Lorem.characters(number: 20),
-        status: :pending
+        status: :available
       }.merge(overrides)
     )
   end
@@ -238,6 +238,48 @@ RSpec.describe Scheduling, type: :model do
       )
 
       expect(overlapping).to be_valid
+    end
+  end
+
+  describe ".between_dates_and_times" do
+    it "filters by date and time range" do
+      user = create_user!
+      diary = create_diary!(user: user)
+      rule = create_scheduling_rule!(
+        user: user,
+        diary: diary,
+        overrides: { start_time: "08:00", end_time: "20:00" }
+      )
+      date = Date.current + 1.day
+
+      in_range = Scheduling.create!(
+        scheduling_attributes(
+          user: user,
+          diary: diary,
+          rule: rule,
+          overrides: { date: date, time: "09:00" }
+        )
+      )
+      Scheduling.create!(
+        scheduling_attributes(
+          user: user,
+          diary: diary,
+          rule: rule,
+          overrides: { date: date, time: "19:00" }
+        )
+      )
+      Scheduling.create!(
+        scheduling_attributes(
+          user: user,
+          diary: diary,
+          rule: rule,
+          overrides: { date: date + 1.day, time: "09:00" }
+        )
+      )
+
+      result = Scheduling.between_dates_and_times(date, "08:30", "12:00")
+
+      expect(result).to contain_exactly(in_range)
     end
   end
 end

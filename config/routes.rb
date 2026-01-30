@@ -17,6 +17,11 @@ Rails.application.routes.draw do
       end
     end
 
-    resources :diaries, only: [ :index ]
+    resources :diaries, only: [ :index, :show ] do
+      get :days, on: :member
+      resources :schedulings, only: [ :index ] do
+        get :days, on: :member
+      end
+    end
   end
 end

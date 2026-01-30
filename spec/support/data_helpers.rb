@@ -67,7 +67,7 @@ module DataHelpers
       date: scheduled_at.to_date,
       time: scheduled_at.strftime("%H:%M"),
       description: Faker::Lorem.characters(number: 30),
-      status: "pending",
+      status: "available",
       created_at: Time.current,
       updated_at: Time.current
     }.merge(overrides)
