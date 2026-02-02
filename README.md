@@ -1,56 +1,146 @@
-# ApiSevendays (WIP)
+# API Sevendays
 
-Work in progress (WIP). This API is under active development and may change.
+API Rails seguindo Rails Way, com foco em consistencia, testes e boas praticas.
 
-## Overview
-API built with Rails 8.1 for user authentication and account management. It uses Devise with custom controllers and is API-only (controllers inherit from `ActionController::API`).
-
-## Tech Stack
-- Ruby on Rails 8.1
+## Stack
+- Ruby + Rails
 - PostgreSQL
-- Devise
-- RSpec
+- Devise (auth)
+- Pundit (autorizacao)
 
-## Setup
-1. Install dependencies:
-   - Ruby and Bundler
-   - PostgreSQL (or Docker)
-2. Install gems:
-   ```bash
-   bundle install
-   ```
-3. Database:
-   ```bash
-   bin/rails db:create db:migrate
-   ```
+## Setup rapido
 
-### Postgres with Docker (optional)
+### 1) Variaveis de ambiente (opcional)
+As configs tem defaults para desenvolvimento. Se quiser customizar:
+
+- `DATABASE_HOST` (default: `localhost`)
+- `DATABASE_PORT` (default: `5432`)
+- `DATABASE_USERNAME` (default: `sevendays_api`)
+- `DATABASE_PASSWORD` (default: `postgres`)
+- `DATABASE_NAME` (default: `api_sevendays_development`)
+- `DATABASE_NAME_TEST` (default: `api_sevendays_test`)
+- `CORS_ORIGINS` (default: `http://localhost:3000,http://127.0.0.1:3000`)
+
+### 2) Dependencias
+```bash
+bundle install
+```
+
+### 3) Banco
+```bash
+bin/rails db:prepare
+```
+
+### 4) Rodar a API
+```bash
+bin/rails s
+```
+
+## Docker (Postgres)
 ```bash
 docker-compose up -d
 ```
 
-The default database settings are in `config/database.yml`.
-
-## Running the App
-```bash
-bin/rails server
-```
-
-## Routes (current)
-- `GET /up` health check
-- `POST /sign_up` user registration
-- Devise sessions:
-  - `POST /users/sign_in`
-  - `DELETE /users/sign_out`
-- Devise passwords:
-  - `POST /users/password` (send reset instructions)
-  - `PUT /users/password` (reset with token)
-
-## Tests
+## Testes
 ```bash
 bundle exec rspec
 ```
 
-## Notes
-- The `User` model validates presence and uniqueness of email, username, and CPF.
-- Authentication uses Devise with custom sessions and passwords controllers in `app/controllers/devise/`.
+## Endpoints principais
+
+### Auth (Devise)
+- `POST /api/users/sign_in`
+- `DELETE /api/users/sign_out`
+- `POST /api/users/password`
+- `PUT /api/users/password`
+
+### Usuarios
+- `POST /api/users` (signup)
+- `GET /api/user` (current user)
+
+### Owner Diary
+- `POST /api/owner/diary`
+- `GET /api/owner/diary`
+- `PATCH /api/owner/diary`
+
+### Owner Schedulings
+- `POST /api/owner/diary/schedulings`
+- `PATCH /api/owner/diary/schedulings/:id`
+
+## Exemplos de requests
+
+### Signup
+```bash
+curl -X POST http://localhost:3000/api/users \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user": {
+      "first_name": "Ana",
+      "last_name": "Silva",
+      "username": "anas",
+      "email": "ana@example.com",
+      "password": "password123",
+      "password_confirmation": "password123",
+      "cpf": "12345678901",
+      "birth_date": "1990-01-01",
+      "status": "owner",
+      "address_attributes": {
+        "address": "Rua A, 123",
+        "city": "Sao Paulo",
+        "state": "SP",
+        "neighborhood": "Centro"
+      }
+    }
+  }'
+```
+
+### Sign in
+```bash
+curl -X POST http://localhost:3000/api/users/sign_in \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user": {
+      "email": "ana@example.com",
+      "password": "password123"
+    }
+  }'
+```
+
+### Current user
+```bash
+curl -X GET http://localhost:3000/api/user \
+  -H "Content-Type: application/json" \
+  --cookie "_api_sevendays_session=SEU_COOKIE"
+```
+
+### Criar diary (owner)
+```bash
+curl -X POST http://localhost:3000/api/owner/diary \
+  -H "Content-Type: application/json" \
+  --cookie "_api_sevendays_session=SEU_COOKIE" \
+  -d '{
+    "diary": {
+      "title": "My Diary",
+      "description": "A long enough description."
+    },
+    "scheduling_rules": {
+      "start_time": "09:00",
+      "end_time": "10:00",
+      "session_duration_minutes": 60,
+      "week_days": [1,3,5],
+      "start_date": "2026-01-29",
+      "end_date": "2026-02-05"
+    }
+  }'
+```
+
+### Erros padronizados
+Todas as respostas de erro seguem:
+```json
+{ "error": { "code": "...", "message": "...", "details": "..." } }
+```
+
+## CI
+- Lint: RuboCop
+- Security: Brakeman + bundler-audit
+- Tests: RSpec

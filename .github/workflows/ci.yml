@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -20,17 +20,17 @@ jobs:
 
       - name: Scan for common Rails security vulnerabilities using static analysis
         run: bin/brakeman --no-pager
-      
+
       - name: Scan for known security vulnerabilities in gems used
         run: bin/bundler-audit
-      
+
   lint:
     runs-on: ubuntu-latest
     env:
       RUBOCOP_CACHE_ROOT: tmp/rubocop
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -53,31 +53,24 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    # services:
-    #  redis:
-    #    image: valkey/valkey:8
-    #    ports:
-    #      - 6379:6379
-    #    options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: sevendays_api
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: api_sevendays_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U sevendays_api"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
-     services:
-    postgres:
-      image: postgres:18-alpine
-      env:
-        POSTGRES_USER: sevendays_api
-        POSTGRES_PASSWORD: postgres
-        POSTGRES_DB: api_sevendays_test
-      ports:
-        - 5432:5432
-      options: >-
-        --health-cmd "pg_isready -U sevendays_api"
-        --health-interval 10s
-        --health-timeout 5s
-        --health-retries 5
-        
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -87,6 +80,6 @@ jobs:
       - name: Run tests
         env:
           RAILS_ENV: test
-          # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
-          # REDIS_URL: redis://localhost:6379/0
-        run: bin/rails db:test:prepare test
+        run: |
+          bin/rails db:prepare
+          bundle exec rspec
