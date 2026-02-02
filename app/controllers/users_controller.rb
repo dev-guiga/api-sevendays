@@ -27,6 +27,7 @@ class UsersController < ApplicationController
       :email,
       :password,
       :password_confirmation,
+      :status,
       :cpf,
       :birth_date,
       address_attributes: [ :address, :city, :state, :neighborhood ]

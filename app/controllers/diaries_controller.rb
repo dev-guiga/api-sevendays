@@ -36,11 +36,9 @@ class DiariesController < ApplicationController
     @diary = Diary.find(params[:id])
   end
 
-  def params_month_date
-    params[:month].to_i || Date.current.month
-  end
-
-  def date_from_month
-    Date.new(Time.zone.today.year, params_month_date, 1)
+  def month_date
+    month = params[:month].to_i
+    month = Date.current.month if month < 1 || month > 12
+    Date.new(Time.zone.today.year, month, 1)
   end
 end

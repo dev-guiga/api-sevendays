@@ -9,8 +9,7 @@ module ApiSevendays
     config.autoload_lib(ignore: %w[assets tasks])
     config.api_only = true
     config.session_store :cookie_store, key: "_api_sevendays_session"
-    config.middleware.use ActionDispatch::Cookies
-    config.middleware.insert_before Warden::Manager, ActionDispatch::Session::CookieStore
-    config.middleware.use config.session_store, config.session_options
+    config.middleware.insert_before Warden::Manager, ActionDispatch::Cookies
+    config.middleware.insert_before Warden::Manager, ActionDispatch::Session::CookieStore, key: "_api_sevendays_session"
   end
 end
