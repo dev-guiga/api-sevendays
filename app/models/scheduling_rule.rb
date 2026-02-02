@@ -1,4 +1,9 @@
 class SchedulingRule < ApplicationRecord
+  DEFAULT_START_TIME = "09:00"
+  DEFAULT_END_TIME = "19:00"
+  DEFAULT_SESSION_DURATION_MINUTES = 60
+  DEFAULT_WEEK_DAYS = (0..6).to_a.freeze
+
   belongs_to :user, inverse_of: :scheduling_rules
   belongs_to :diary, inverse_of: :scheduling_rule
   has_many :schedulings, inverse_of: :scheduling_rule, dependent: :destroy
@@ -13,6 +18,24 @@ class SchedulingRule < ApplicationRecord
 
   validate :session_duration_multiple_of_15
   validate :session_duration_next_multiple_of_15
+
+  def self.default_attributes
+    {
+      start_time: DEFAULT_START_TIME,
+      end_time: DEFAULT_END_TIME,
+      session_duration_minutes: DEFAULT_SESSION_DURATION_MINUTES,
+      week_days: DEFAULT_WEEK_DAYS.dup
+    }
+  end
+
+  def self.apply_defaults(params)
+    defaults = default_attributes
+    return defaults if params.blank?
+
+    cleaned = params.to_h
+    cleaned = cleaned.compact_blank if cleaned.respond_to?(:compact_blank)
+    defaults.merge(cleaned.symbolize_keys)
+  end
 
   def effective_duration_minutes(at: Time.current)
     return session_duration_minutes if session_duration_minutes_next.blank? || session_duration_effective_at.blank?

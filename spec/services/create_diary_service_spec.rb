@@ -43,4 +43,18 @@ RSpec.describe CreateDiaryService, type: :service do
       expect(result.errors[:diary].to_hash).to include(:title)
     end
   end
+
+  context "with missing scheduling rule fields" do
+    let(:scheduling_rule_params) { {} }
+
+    it "applies default scheduling rule values" do
+      result
+
+      rule = result.payload[:scheduling_rule]
+      expect(rule.start_time.strftime("%H:%M")).to eq("09:00")
+      expect(rule.end_time.strftime("%H:%M")).to eq("19:00")
+      expect(rule.session_duration_minutes).to eq(60)
+      expect(rule.week_days).to eq((0..6).to_a)
+    end
+  end
 end

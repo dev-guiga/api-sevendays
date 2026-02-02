@@ -7,7 +7,8 @@ class CreateDiaryService
 
   def call
     diary = current_user.build_diary(diary_params)
-    scheduling_rule = diary.build_scheduling_rule(scheduling_rule_params.merge(user: current_user))
+    rule_params = SchedulingRule.apply_defaults(scheduling_rule_params)
+    scheduling_rule = diary.build_scheduling_rule(rule_params.merge(user: current_user))
 
     if diary.valid? && scheduling_rule.valid?
       Diary.transaction do

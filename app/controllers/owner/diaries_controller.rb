@@ -55,7 +55,8 @@ class Owner::DiariesController < ApplicationController
   end
 
   def scheduling_rule_params
-    params.require(:scheduling_rules).permit(
+    raw_params = params.fetch(:scheduling_rules, ActionController::Parameters.new)
+    raw_params.permit(
       :start_time,
       :end_time,
       :start_date,
