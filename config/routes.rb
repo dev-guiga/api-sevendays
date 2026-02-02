@@ -19,7 +19,7 @@ Rails.application.routes.draw do
 
     resources :diaries, only: [ :index, :show ] do
       get :days, on: :member
-      resources :schedulings, only: [ :index ] do
+      resources :schedulings, only: [ :index, :show, :create, :update, :destroy ] do
         get :days, on: :member
       end
     end
