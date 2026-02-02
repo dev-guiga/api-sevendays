@@ -42,6 +42,76 @@ RSpec.describe Owner::SchedulingRulesController, type: :controller do
     it "routes PATCH /api/owner/diary/scheduling_rule to owner/scheduling_rules#update" do
       expect(patch: "/api/owner/diary/scheduling_rule").to route_to("owner/scheduling_rules#update")
     end
+
+    it "routes GET /api/owner/diary/scheduling_rule to owner/scheduling_rules#show" do
+      expect(get: "/api/owner/diary/scheduling_rule").to route_to("owner/scheduling_rules#show")
+    end
+  end
+
+  describe "#show" do
+    context "when authorized" do
+      before do
+        sign_in(owner)
+        scheduling_rule
+      end
+
+      it "returns the scheduling rule" do
+        get :show, format: :json
+
+        expect(response).to have_http_status(:ok)
+        body = response.parsed_body
+        expect(body["success"]).to eq(true)
+        expect(body.dig("scheduling_rule", "id")).to eq(scheduling_rule.id)
+        expect(body.dig("scheduling_rule", "start_time")).to be_present
+        expect(body.dig("scheduling_rule", "end_time")).to be_present
+      end
+    end
+
+    context "when scheduling rule does not exist" do
+      let(:owner_without_rule) { create_user!(status: "owner") }
+      let!(:owner_diary_without_rule) { create_diary!(user: owner_without_rule) }
+
+      before { sign_in(owner_without_rule) }
+
+      it "returns not found" do
+        get :show, format: :json
+
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context "when current user is not owner" do
+      let(:non_owner) { create_user!(status: "user") }
+      let!(:non_owner_diary) { create_diary!(user: non_owner) }
+
+      before { sign_in(non_owner) }
+
+      it "returns forbidden" do
+        get :show, format: :json
+
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context "when diary does not exist" do
+      let(:owner_without_diary) { create_user!(status: "owner") }
+
+      before { sign_in(owner_without_diary) }
+
+      it "returns not found" do
+        get :show, format: :json
+
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context "when unauthenticated" do
+      it "returns unauthorized" do
+        get :show, format: :json
+
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
   end
 
   describe "#update" do

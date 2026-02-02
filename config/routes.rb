@@ -13,7 +13,7 @@ Rails.application.routes.draw do
     namespace :owner do
       resource :diary, only: [ :create, :show, :update ], controller: "diaries" do
         resources :schedulings, only: [ :index, :create, :update, :destroy ]
-        resource :scheduling_rule, only: [ :update ], controller: "scheduling_rules"
+        resource :scheduling_rule, only: [ :show, :update ], controller: "scheduling_rules"
       end
     end
 

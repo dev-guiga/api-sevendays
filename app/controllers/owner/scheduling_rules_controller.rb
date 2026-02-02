@@ -19,6 +19,20 @@ class Owner::SchedulingRulesController < ApplicationController
     end
   end
 
+  def show
+    return if performed?
+
+    authorize @diary, :schedule?
+
+    @scheduling_rule = @diary.scheduling_rule
+    unless @scheduling_rule
+      render_error(code: "not_found", message: "Scheduling rule not found", status: :not_found, details: nil)
+      return
+    end
+
+    render :show, status: :ok
+  end
+
   private
   def scheduling_rule_params
     params.require(:scheduling_rules).permit(
