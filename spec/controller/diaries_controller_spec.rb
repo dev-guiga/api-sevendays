@@ -55,7 +55,7 @@ RSpec.describe DiariesController, type: :controller do
         }
       )
     }
-    let(:target_date) { Date.current + 1.day }
+    let(:target_date) { Date.current + 3.days }
     let!(:scheduling_in_day) {
       Scheduling.create!(
         scheduling_attributes(
@@ -80,14 +80,14 @@ RSpec.describe DiariesController, type: :controller do
     context "when authenticated" do
       before { sign_in(user) }
 
-      it "returns schedulings for the requested day" do
+      it "returns available slots for the requested day" do
         get :days, params: { id: diary.id, date: target_date.to_s }, format: :json
 
         expect(response).to have_http_status(:ok)
         body = response.parsed_body
         expect(body["success"]).to eq(true)
-        expect(body["schedulings"].size).to eq(1)
-        expect(body["schedulings"].first["id"]).to eq(scheduling_in_day.id)
+        expect(body["available_slots"].map { |slot| slot["start_time"] }).to include("09:00", "11:00")
+        expect(body["available_slots"].map { |slot| slot["start_time"] }).not_to include("10:00")
       end
 
       it "returns 422 for invalid date" do

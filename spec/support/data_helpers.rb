@@ -128,7 +128,7 @@ module DataHelpers
 
     duration_minutes =
       if rule.respond_to?(:effective_duration_minutes)
-        rule.effective_duration_minutes
+        rule.effective_duration_minutes(at: from_time)
       else
         rule.session_duration_minutes
       end

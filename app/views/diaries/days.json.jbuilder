@@ -1,9 +1,8 @@
 # frozen_string_literal: true
 
 json.success true
-json.schedulings @schedulings do |s|
-  json.id s.id
-  json.date s.date
-  json.time s.time
-  json.status s.status
+json.date @day
+json.available_slots @available_slots do |slot|
+  json.start_time slot[:start_time]
+  json.end_time slot[:end_time]
 end

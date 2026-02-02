@@ -20,11 +20,8 @@ class DiariesController < ApplicationController
   def days
     return if performed?
 
-    day = params[:date].present? ? Date.strptime(params[:date], "%Y-%m-%d") : Date.current
-
-    @schedulings = @diary.schedulings
-    .includes(:user)
-    .between_dates_and_times(day, @diary.scheduling_rule.start_time, @diary.scheduling_rule.end_time)
+    @day = params[:date].present? ? Date.strptime(params[:date], "%Y-%m-%d") : Date.current
+    @available_slots = @diary.available_slots_for(@day)
 
     render :days, status: :ok
   rescue ArgumentError

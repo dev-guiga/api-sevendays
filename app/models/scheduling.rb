@@ -53,7 +53,8 @@ class Scheduling < ApplicationRecord
     end
 
     def minimum_lead_minutes
-      duration = session_duration_minutes || scheduling_rule&.effective_duration_minutes
+      duration = session_duration_minutes
+      duration ||= scheduling_rule&.effective_duration_minutes(at: scheduled_at || Time.current)
       return 60 if duration.blank?
 
       duration.between?(15, 45) ? 30 : 60
@@ -90,7 +91,8 @@ class Scheduling < ApplicationRecord
     def sync_duration_from_rule
       return if session_duration_minutes.present? || scheduling_rule.blank?
 
-      self.session_duration_minutes = scheduling_rule.effective_duration_minutes
+      effective_at = scheduled_at || Time.current
+      self.session_duration_minutes = scheduling_rule.effective_duration_minutes(at: effective_at)
     end
 
     def time_on_date(clock_time)

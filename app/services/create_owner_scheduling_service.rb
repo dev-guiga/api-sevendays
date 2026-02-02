@@ -21,6 +21,7 @@ class CreateOwnerSchedulingService
         date: params[:date],
         time: params[:time],
         description: "scheduling created by owner",
+        status: "marked",
         created_at: now,
         updated_at: now
       )
